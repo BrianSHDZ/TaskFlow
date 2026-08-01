@@ -8,7 +8,7 @@ public class Usuario {
     //ATRIBUTOS
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
     @Column(name = "nombre_usuario", nullable = false,length = 50, unique = true)
     private String nombreUsuario;
     @Column(name = "correo", nullable = false, length = 100, unique = true)
@@ -31,13 +31,10 @@ public class Usuario {
     }
 
     //METODOS
-    public Integer getId() {
-        return id;
-    }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+
+    public void setId(Long id) { this.id = id; }
 
     public String getNombreUsuario() {
         return nombreUsuario;
