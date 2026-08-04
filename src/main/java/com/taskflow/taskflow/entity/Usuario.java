@@ -17,7 +17,7 @@ public class Usuario {
     private String contrasena;
     @ManyToOne
     @JoinColumn(name = "rol_id", nullable = false)
-    private Rol rol;
+    private Rol rol; //Creamos un objeto de tipo rol el cual hace referencia al id de roles(ahi se define el rol de cada usuario)
 
     //CONSTRUCTOR
     public Usuario() {
