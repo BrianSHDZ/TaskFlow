@@ -1,6 +1,9 @@
 package com.taskflow.taskflow.service;
 
+import com.taskflow.taskflow.entity.Rol;
 import com.taskflow.taskflow.entity.Usuario;
+import com.taskflow.taskflow.exception.EmailAlreadyExistsExceptions;
+import com.taskflow.taskflow.exception.UsuarioNotFoundException;
 import com.taskflow.taskflow.repository.IUsuarioRepository;
 import org.springframework.stereotype.Service;
 
@@ -21,18 +24,16 @@ public class UsuarioServiceImp implements IUsuarioService{
         return usuarioRepository.findAll();
     }
 
-    /*@Override
-    public Optional<Usuario> obtenerPorId(Long id) {
-        return usuarioRepository.findById(id);
-    }
-
-    @Override
-    public Optional<Usuario> obtenerPorCorreo(String correo) {
-        return usuarioRepository.findByCorreo(correo);
-    }*/
-
     @Override
     public Usuario nuevoUsuario(Usuario usuario) {
+        if(usuarioRepository.existsByCorreo(usuario.getCorreo())){
+            throw new EmailAlreadyExistsExceptions("El correo electronico ya existe");
+        }
+        if(usuario.getRol() == null || usuario.getRol().getId() == null){
+            Rol rolPorDefecto = new Rol();
+            rolPorDefecto.setId(1);
+            usuario.setRol(rolPorDefecto);
+        }
         return usuarioRepository.save(usuario);
     }
 
@@ -42,22 +43,25 @@ public class UsuarioServiceImp implements IUsuarioService{
         if(usuarioActual != null){
             usuarioActual.setNombreUsuario(usuario.getNombreUsuario());
             usuarioActual.setContrasena(usuario.getContrasena());
+            return usuarioRepository.save(usuarioActual);
+        }else{
+            throw new UsuarioNotFoundException("El usuario que intenta modificar no existe");
+        }
 
-        }return usuarioRepository.save(usuarioActual);
-           // throw new (crear una excepsion) con else
     }
 
     @Override
-    public Usuario eliminarUsuario(Long id) {
+    public void eliminarUsuario(Long id) {
         Usuario usuarioExistente = usuarioRepository.findById(id).orElse(null);
         if(usuarioExistente != null){
             usuarioRepository.deleteById(id);
-        }return null;
-            //crear una excepsion con else
+        }else{
+            throw new UsuarioNotFoundException("El usuario que intenta eliminar no existe");
+        }
     }
 
-    /*@Override
-    public Boolean existePorCorreo(String correo) {
+    @Override
+    public boolean existePorCorreo(String correo) {
         return usuarioRepository.existsByCorreo(correo);
-    }*/
+    }
 }

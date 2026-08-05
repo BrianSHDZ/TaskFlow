@@ -14,7 +14,7 @@ public interface IUsuarioService {
 
     Usuario actualizarUsuario(Long id, Usuario usuario);  //Actualizar datos completos del usuario
 
-    Usuario eliminarUsuario(Long id);  //Eliminar usuario por id
+    void eliminarUsuario(Long id);  //Eliminar usuario por id
 
-    /*Boolean existePorCorreo(String correo);*/
+    boolean existePorCorreo(String correo);
 }
