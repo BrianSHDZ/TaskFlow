@@ -1,6 +1,10 @@
 package com.taskflow.taskflow.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "usuarios")
@@ -8,16 +12,22 @@ public class Usuario {
     //ATRIBUTOS
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    @Column(name = "nombre_usuario", nullable = false,length = 50, unique = true)
+    private Long id;
+    @NotBlank(message = "El nombre de usuario no puede estar vacio")
+    @Column(name = "nombre_usuario", nullable = false,length = 50)
     private String nombreUsuario;
+    @NotBlank(message = "El correo no puede estar vacio")
+    @Email(message = "El correo esta mal escrito")
     @Column(name = "correo", nullable = false, length = 100, unique = true)
     private String correo;
+    @NotBlank(message = "La contrasena no puede estar vacia")
+    @Size(min = 12, max = 20, message = "La contrasena debe tener entre 12 a 20 caracteres")
     @Column(name = "contrasena",  nullable = false, length = 250)
     private String contrasena;
+    @NotNull(message = "Debe asignar un rol al usuario")
     @ManyToOne
     @JoinColumn(name = "rol_id", nullable = false)
-    private Rol rol;
+    private Rol rol; //Creamos un objeto de tipo rol el cual hace referencia al id de roles(ahi se define el rol de cada usuario)
 
     //CONSTRUCTOR
     public Usuario() {
@@ -31,13 +41,10 @@ public class Usuario {
     }
 
     //METODOS
-    public Integer getId() {
-        return id;
-    }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    public Long getId() { return id; }
+
+    public void setId(Long id) { this.id = id; }
 
     public String getNombreUsuario() {
         return nombreUsuario;
