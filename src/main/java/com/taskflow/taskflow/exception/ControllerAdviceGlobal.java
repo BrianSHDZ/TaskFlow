@@ -36,4 +36,15 @@ public class ControllerAdviceGlobal {
     public ResponseEntity<?> manejarCorreoDuplicado(EmailAlreadyExistsExceptions emailAlreadyExistsExceptions){
         return ResponseEntity.status(HttpStatus.CONFLICT).body(emailAlreadyExistsExceptions.getMessage());
     }
+
+    @ExceptionHandler(RolNotFoundException.class)
+    public ResponseEntity<?> manejarRolNoEncontrado(RolNotFoundException rolNotFoundException){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(rolNotFoundException.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> manejarIlegalArgument(IllegalArgumentException argException){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(argException.getMessage());
+    }
+
 }
