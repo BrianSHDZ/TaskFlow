@@ -1,6 +1,9 @@
 package com.taskflow.taskflow.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +14,7 @@ public class Tarea {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotBlank(message = "El titulo no puede estar vacio")
     @Column(name = "titulo", nullable = false,  length = 100)
     private String titulo;
     @Column(name = "descripcion", columnDefinition = "TEXT")
@@ -19,10 +23,13 @@ public class Tarea {
     private String estatus;
     @Column(name = "prioridad",  nullable = false, length = 20)
     private String prioridad;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "vencimiento")
     private LocalDateTime vencimiento;
+    @NotNull(message = "Id del proyecto no puede estar nulo")
     @Column(name = "proyecto_id", nullable = false)
     private Long proyectoId;
+    @NotNull(message = "La asignacion no puede estar nulo")
     @Column(name = "asignado_a")
     private Long asignadoA;
     @Column(name = "creado_en", insertable = false, updatable = false)
