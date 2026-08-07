@@ -25,13 +25,13 @@ public class RolServiceImp implements IRolService{
     @Override
     public Rol guardarRol(Rol rol) {
         if(rolRepository.findByNombre(rol.getNombre()).isPresent()){
-          throw new IllegalArgumentException("El rol" + rol.getNombre() + " ya existe en la base de datos");
+          throw new IllegalArgumentException("El rol " + rol.getNombre() + " ya existe en la base de datos");
         } return rolRepository.save(rol);
     }
 
     @Override
     public void eliminarRol(Integer id) {
         if(!rolRepository.existsById(id)){
-            throw new RolNotFoundException("El rol con ID" +id +"no existe");
+            throw new RolNotFoundException("El rol con ID " + id +" no existe");
         }rolRepository.deleteById(id); }
 }
