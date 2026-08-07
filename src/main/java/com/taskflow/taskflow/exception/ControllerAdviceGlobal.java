@@ -47,4 +47,9 @@ public class ControllerAdviceGlobal {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(argException.getMessage());
     }
 
+    @ExceptionHandler(TareaNotFoundException.class)
+    public ResponseEntity<?> manejarTareaNoEncontrado(TareaNotFoundException tareaNotFoundException){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(tareaNotFoundException.getMessage());
+    }
+
 }
