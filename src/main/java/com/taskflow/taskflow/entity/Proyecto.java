@@ -1,6 +1,8 @@
 package com.taskflow.taskflow.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 
@@ -11,10 +13,12 @@ public class Proyecto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotBlank(message = "El titulo del proyecto no puede ir vacio")
     @Column(name = "titulo", nullable = false, length = 120)
     private String titulo;
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
+    @NotNull(message = "El id del usuario no puede estar nulo")
     @Column(name = "creado_por", nullable = false)
     private Long creadoPor;
     @Column(name = "creado_en", insertable = false,  updatable = false)

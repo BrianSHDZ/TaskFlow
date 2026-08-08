@@ -1,6 +1,7 @@
 package com.taskflow.taskflow.service;
 
 import com.taskflow.taskflow.entity.Tarea;
+import com.taskflow.taskflow.exception.ProyectoNotFoundException;
 import com.taskflow.taskflow.exception.TareaNotFoundException;
 import com.taskflow.taskflow.exception.UsuarioNotFoundException;
 import com.taskflow.taskflow.repository.IProyectoRepository;
@@ -43,7 +44,7 @@ public class TareaServiceImp implements ITareaService {
     public Tarea guardarTarea(Tarea tarea) {
         //el proyecto debe existir y aqui validamos eso
         if(tarea.getProyectoId()==null || !proyectoRepository.existsById(tarea.getProyectoId())) {
-            throw new IllegalArgumentException("El proyecto no existe");
+            throw new ProyectoNotFoundException("El proyecto con id :" + tarea.getProyectoId() + " no existe");
         }
         //el usuario debe existir y aqui validamos eso
         if(tarea.getAsignadoA()!=null && !usuarioRepository.existsById(tarea.getAsignadoA())) {
@@ -58,7 +59,7 @@ public class TareaServiceImp implements ITareaService {
 
         //validamos exista el proyecto nuevamente
         if(tareaActualizada.getProyectoId()==null || !proyectoRepository.existsById(tareaActualizada.getProyectoId())) {
-            throw new IllegalArgumentException("El proyecto no existe");
+            throw new ProyectoNotFoundException("El proyecto con id: " +tareaActualizada.getProyectoId()+ " no existe");
         }
         //aqui condicionamos que el usuario asignado debe existir
         if(tareaActualizada.getAsignadoA()!=null && !usuarioRepository.existsById(tareaActualizada.getAsignadoA())) {
