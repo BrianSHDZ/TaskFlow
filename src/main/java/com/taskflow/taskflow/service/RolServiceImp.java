@@ -1,6 +1,7 @@
 package com.taskflow.taskflow.service;
 
 import com.taskflow.taskflow.entity.Rol;
+import com.taskflow.taskflow.exception.RolAlreadyExistsExceptions;
 import com.taskflow.taskflow.exception.RolNotFoundException;
 import com.taskflow.taskflow.repository.IRolRepository;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class RolServiceImp implements IRolService{
     @Override
     public Rol guardarRol(Rol rol) {
         if(rolRepository.findByNombre(rol.getNombre()).isPresent()){
-          throw new IllegalArgumentException("El rol " + rol.getNombre() + " ya existe en la base de datos");
+          throw new RolAlreadyExistsExceptions("El rol " + rol.getNombre() + " ya existe en la base de datos");
         } return rolRepository.save(rol);
     }
 

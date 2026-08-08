@@ -42,6 +42,11 @@ public class ControllerAdviceGlobal {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(rolNotFoundException.getMessage());
     }
 
+    @ExceptionHandler(RolAlreadyExistsExceptions.class)
+    public ResponseEntity<?> manejarRolDuplicado(RolAlreadyExistsExceptions rolAlreadyExistsExceptions){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(rolAlreadyExistsExceptions.getMessage());
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> manejarIlegalArgument(IllegalArgumentException argException){
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(argException.getMessage());
@@ -51,5 +56,11 @@ public class ControllerAdviceGlobal {
     public ResponseEntity<?> manejarTareaNoEncontrado(TareaNotFoundException tareaNotFoundException){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(tareaNotFoundException.getMessage());
     }
+
+    @ExceptionHandler(ProyectoNotFoundException.class)
+    public ResponseEntity<?> manejarProyectoNoEncontrada(ProyectoNotFoundException proyectoNotFoundException){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(proyectoNotFoundException.getMessage());
+    }
+
 
 }
