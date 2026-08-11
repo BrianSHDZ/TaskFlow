@@ -10,4 +10,7 @@ import java.util.List;
 public interface ITareaRepository extends JpaRepository<Tarea, Long> {
     List<Tarea> findByProyectoId(Long proyectoId);
     List<Tarea> findByAsignadoA(Long asignadoA);
+    boolean existsByProyectoId(Long proyectoId);
+    List<Tarea> findByEstatusIgnoreCase(String estatus);
+    List<Tarea> findByAsignadoAAndEstatusIgnoreCase(Long asignadoA, String estatus);
 }

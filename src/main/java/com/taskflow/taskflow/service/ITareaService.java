@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface ITareaService {
     List<Tarea> listarTareas();
 
-    //Optional<Tarea> buscarTareasPorId(Long id);
+    Optional<Tarea> buscarTareasPorId(Long id);
 
     List<Tarea> obtenerTareaPorProyectoId(Long ProyectoId);
 
@@ -19,4 +19,10 @@ public interface ITareaService {
     Tarea actualizarTarea(Long id, Tarea tareaActualizada);
 
     void eliminarTarea(Long id);
+
+    Tarea finalizarTarea(Long id);
+
+    List<Tarea> obtenerTareasPorEstatus(String estatus);
+
+    List<Tarea> obtenerTareasPorAsignadoYEstatus(Long asignadoA, String estatus);
 }

@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface IProyectoRepository extends JpaRepository<Proyecto, Long> {
     List<Proyecto> findByCreadoPor(Long usuarioId);
+    boolean existsByCreadoPor(Long usuarioId);
 }

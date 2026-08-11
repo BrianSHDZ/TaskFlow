@@ -2,8 +2,10 @@ package com.taskflow.taskflow.service;
 
 import com.taskflow.taskflow.entity.Rol;
 import com.taskflow.taskflow.exception.RolAlreadyExistsExceptions;
+import com.taskflow.taskflow.exception.RolEnUsoException;
 import com.taskflow.taskflow.exception.RolNotFoundException;
 import com.taskflow.taskflow.repository.IRolRepository;
+import com.taskflow.taskflow.repository.IUsuarioRepository;
 import org.springframework.stereotype.Service;
 
 import javax.management.relation.RoleNotFoundException;
@@ -14,8 +16,11 @@ import java.util.Optional;
 public class RolServiceImp implements IRolService{
 
     private final IRolRepository rolRepository;
+    private final IUsuarioRepository usuarioRepository;
 
-    public RolServiceImp(IRolRepository rolRepository) { this.rolRepository = rolRepository; }
+    public RolServiceImp(IRolRepository rolRepository, IUsuarioRepository usuarioRepository) { this.rolRepository = rolRepository;
+        this.usuarioRepository = usuarioRepository;
+    }
 
     @Override
     public List<Rol> listarRoles() { return rolRepository.findAll(); }
@@ -34,5 +39,8 @@ public class RolServiceImp implements IRolService{
     public void eliminarRol(Integer id) {
         if(!rolRepository.existsById(id)){
             throw new RolNotFoundException("El rol con ID " + id +" no existe");
+        }
+        if(usuarioRepository.existsByRolId(id)){
+            throw new RolEnUsoException("No se puede eliminar el rol con ID " + id + " porque esta asignado a uno o mas usuarios");
         }rolRepository.deleteById(id); }
 }
