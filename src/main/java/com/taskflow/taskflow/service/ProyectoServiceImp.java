@@ -1,9 +1,12 @@
 package com.taskflow.taskflow.service;
 
 import com.taskflow.taskflow.entity.Proyecto;
+import com.taskflow.taskflow.exception.DatosInvalidosException;
 import com.taskflow.taskflow.exception.ProyectoNotFoundException;
+import com.taskflow.taskflow.exception.ProyectoWithTareaException;
 import com.taskflow.taskflow.exception.UsuarioNotFoundException;
 import com.taskflow.taskflow.repository.IProyectoRepository;
+import com.taskflow.taskflow.repository.ITareaRepository;
 import com.taskflow.taskflow.repository.IUsuarioRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +17,12 @@ public class ProyectoServiceImp implements IProyectoService{
 
     private final IProyectoRepository proyectoRepository;
     private final IUsuarioRepository usuarioRepository;
+    private final ITareaRepository tareaRepository;
 
-    public ProyectoServiceImp(IProyectoRepository proyectoRepository, IUsuarioRepository usuarioRepository) {
+    public ProyectoServiceImp(IProyectoRepository proyectoRepository, IUsuarioRepository usuarioRepository, ITareaRepository tareaRepository) {
         this.proyectoRepository = proyectoRepository;
         this.usuarioRepository = usuarioRepository;
+        this.tareaRepository = tareaRepository;
     }
 
     @Override
@@ -25,9 +30,14 @@ public class ProyectoServiceImp implements IProyectoService{
 
     @Override
     public Proyecto guardarProyecto(Proyecto proyecto) {
-        if(proyecto.getCreadoPor()==null || !usuarioRepository.existsById(proyecto.getCreadoPor())) {
-            throw new UsuarioNotFoundException("El usuario no existe");
-        }return proyectoRepository.save(proyecto);
+        //valida que el nombre del proyecto no esté vacío
+        if (proyecto.getTitulo() == null || proyecto.getTitulo().isBlank()) {
+            throw new DatosInvalidosException("El nombre del proyecto es obligatorio");
+        }
+        //valida que el usuario creador exista
+        if (proyecto.getCreadoPor() == null || !usuarioRepository.existsById(proyecto.getCreadoPor())) {
+            throw new UsuarioNotFoundException("El usuario asignado al proyecto no existe");
+        } return proyectoRepository.save(proyecto);
     }
 
     @Override
@@ -44,21 +54,31 @@ public class ProyectoServiceImp implements IProyectoService{
 
     @Override
     public Proyecto actualizarProyecto(Long id, Proyecto proyecto) {
-        Proyecto proyectoExistente = obtenerProyectoPorId(id);
-
-        if(proyecto.getCreadoPor()==null || !usuarioRepository.existsById(proyecto.getCreadoPor())) {
-            throw new UsuarioNotFoundException("El usuario no existe");
+        //verifica si el proyecto existe
+        Proyecto proyectoActual = proyectoRepository.findById(id)
+                .orElseThrow(() -> new ProyectoNotFoundException("El proyecto con id " + id + " no existe"));
+        //actualiza nombre si tiene modificacion
+        if (proyecto.getTitulo() != null && !proyecto.getTitulo().isBlank()) {
+            proyectoActual.setTitulo(proyecto.getTitulo());
         }
-
-        proyecto.setTitulo(proyecto.getTitulo());
-        proyecto.setDescripcion(proyecto.getDescripcion());
-        proyecto.setCreadoPor(proyecto.getCreadoPor());
-        return proyectoRepository.save(proyectoExistente);
+        //actualiza descripción si tiene modificacion
+        if (proyecto.getDescripcion() != null) {
+            proyectoActual.setDescripcion(proyecto.getDescripcion());
+        }
+        //actualiza usuario creador si asi se desea y se modifica y existe
+        if (proyecto.getCreadoPor() != null) {
+            if (!usuarioRepository.existsById(proyecto.getCreadoPor())) {
+                throw new UsuarioNotFoundException("El usuario con id " + proyecto.getCreadoPor() + " no existe");
+            } proyectoActual.setCreadoPor(proyecto.getCreadoPor());
+        } return proyectoRepository.save(proyectoActual);
     }
 
     @Override
     public void eliminarProyecto(Long id) {
         Proyecto proyecto = obtenerProyectoPorId(id);
+        if(tareaRepository.existsByProyectoId(id)){
+            throw new ProyectoWithTareaException("No se puede eliminar el proyecto porque tiene tareas asociadas. Elimina o reasigna las tareas");
+        }
         proyectoRepository.delete(proyecto);
     }
 }
