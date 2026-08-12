@@ -26,7 +26,7 @@ public class Tarea {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "vencimiento")
     private LocalDateTime vencimiento;
-    @NotNull(message = "Id del proyecto no puede estar nulo")
+    //@NotNull(message = "Id del proyecto no puede estar nulo")
     @Column(name = "proyecto_id", nullable = false)
     private Long proyectoId;
     @NotNull(message = "La asignacion no puede estar nulo")

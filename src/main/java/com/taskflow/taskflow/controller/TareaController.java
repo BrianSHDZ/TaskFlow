@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/taskflow")
+@RequestMapping("/api/taskflow")
 public class TareaController {
 
     private final ITareaService tareaService;
@@ -51,6 +51,19 @@ public class TareaController {
 
     @PostMapping("/tarea")
     public ResponseEntity<?> guardarTarea(@RequestBody @Valid Tarea tarea){
+        Tarea nuevaTarea = tareaService.guardarTarea(tarea);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevaTarea);
+    }
+
+    @PostMapping("/tarea/rapida")
+    public ResponseEntity<?> guardarTareaRapida(@RequestBody @Valid Tarea tarea){
+        tarea.setProyectoId(null);
+        if(tarea.getEstatus() == null){
+            tarea.setEstatus("PENDIENTE");
+        }
+        if(tarea.getPrioridad() == null){
+            tarea.setPrioridad("MEDIA");
+        }
         Tarea nuevaTarea = tareaService.guardarTarea(tarea);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevaTarea);
     }

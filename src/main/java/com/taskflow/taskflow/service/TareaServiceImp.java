@@ -48,19 +48,20 @@ public class TareaServiceImp implements ITareaService {
 
     @Override
     public Tarea guardarTarea(Tarea tarea) {
-        //valida venga título de la tarea
+        // Valida título obligatorio
         if (tarea.getTitulo() == null || tarea.getTitulo().isBlank()) {
             throw new DatosInvalidosException("El título de la tarea es obligatorio");
+        } validarEstatus(tarea.getEstatus());
+
+        // Solo valida el proyecto SI viene un proyectoId (si es null, lo ignora)
+        if (tarea.getProyectoId() != null && !proyectoRepository.existsById(tarea.getProyectoId())) {
+            throw new ProyectoNotFoundException("El proyecto con id: " + tarea.getProyectoId() + " no existe");
         }
-        validarEstatus(tarea.getEstatus());
-        //el proyecto debe existir y aqui validamos eso
-        if(tarea.getProyectoId()==null || !proyectoRepository.existsById(tarea.getProyectoId())) {
-            throw new ProyectoNotFoundException("El proyecto con id :" + tarea.getProyectoId() + " no existe");
-        }
-        //el usuario debe existir y aqui validamos eso
-        if(tarea.getAsignadoA()!=null && !usuarioRepository.existsById(tarea.getAsignadoA())) {
+
+        // Valida usuario asignado si viene presente
+        if (tarea.getAsignadoA() != null && !usuarioRepository.existsById(tarea.getAsignadoA())) {
             throw new UsuarioNotFoundException("El usuario asignado no existe");
-        }return tareaRepository.save(tarea);
+        } return tareaRepository.save(tarea);
     }
 
     @Override
@@ -69,8 +70,8 @@ public class TareaServiceImp implements ITareaService {
         Tarea tareaExistente = tareaRepository.findById(id).orElseThrow(() -> new TareaNotFoundException("No se encontro la tarea con id: "+ id));
 
         //validamos exista el proyecto nuevamente
-        if(tareaActualizada.getProyectoId()==null || !proyectoRepository.existsById(tareaActualizada.getProyectoId())) {
-            throw new ProyectoNotFoundException("El proyecto con id: " +tareaActualizada.getProyectoId()+ " no existe");
+        if (tareaActualizada.getProyectoId() != null && !proyectoRepository.existsById(tareaActualizada.getProyectoId())) {
+            throw new ProyectoNotFoundException("El proyecto con id: " + tareaActualizada.getProyectoId() + " no existe");
         }
         //aqui condicionamos que el usuario asignado debe existir
         if(tareaActualizada.getAsignadoA()!=null && !usuarioRepository.existsById(tareaActualizada.getAsignadoA())) {
@@ -136,7 +137,6 @@ public class TareaServiceImp implements ITareaService {
         if (estatus == null) {
             throw new IllegalArgumentException("El estatus no puede ser nulo");
         }
-
         String estatusUpper = estatus.toUpperCase();
         if (!estatusUpper.equals("PENDIENTE") && !estatusUpper.equals("EN_CURSO") && !estatusUpper.equals("COMPLETADA")) {
             throw new IllegalArgumentException("Estatus no válido. Los valores permitidos son: PENDIENTE, EN_CURSO, COMPLETADA");
