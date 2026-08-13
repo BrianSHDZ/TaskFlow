@@ -27,7 +27,7 @@ public class Tarea {
     @Column(name = "vencimiento")
     private LocalDateTime vencimiento;
     //@NotNull(message = "Id del proyecto no puede estar nulo")
-    @Column(name = "proyecto_id", nullable = false)
+    @Column(name = "proyecto_id", nullable = true)
     private Long proyectoId;
     @NotNull(message = "La asignacion no puede estar nulo")
     @Column(name = "asignado_a")
