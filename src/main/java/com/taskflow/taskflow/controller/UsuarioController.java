@@ -37,7 +37,10 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/usuario/{id}")
-    public void eliminarUsuario(@PathVariable Long id){
-        usuarioService.eliminarUsuario(id);
+    public void eliminarUsuario(@PathVariable Long id){ usuarioService.eliminarUsuario(id); }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<Usuario>> buscarUsuarios(@RequestParam String query) {
+        return ResponseEntity.ok(usuarioService.buscarUsuariosPorFiltro(query));
     }
 }

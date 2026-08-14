@@ -26,7 +26,6 @@ public class Tarea {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "vencimiento")
     private LocalDateTime vencimiento;
-    //@NotNull(message = "Id del proyecto no puede estar nulo")
     @Column(name = "proyecto_id", nullable = true)
     private Long proyectoId;
     @NotNull(message = "La asignacion no puede estar nulo")
@@ -34,6 +33,9 @@ public class Tarea {
     private Long asignadoA;
     @Column(name = "creado_en", insertable = false, updatable = false)
     private LocalDateTime creadoEn;
+    // Campo transitorio para recibir el nombre o correo desde el frontend sin alterar la BD directamente
+    @Transient
+    private String asignadoAInput;
 
     //CONSTRUCTOR
     public Tarea(){
@@ -47,6 +49,14 @@ public class Tarea {
         this.vencimiento = vencimiento;
         this.proyectoId = proyectoId;
         this.asignadoA = asignadoA;
+    }
+
+    public String getAsignadoAInput() {
+        return asignadoAInput;
+    }
+
+    public void setAsignadoAInput(String asignadoAInput) {
+        this.asignadoAInput = asignadoAInput;
     }
 
     //METODOS

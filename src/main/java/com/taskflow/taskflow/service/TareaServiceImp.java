@@ -1,7 +1,9 @@
 package com.taskflow.taskflow.service;
 
+import com.taskflow.taskflow.entity.Proyecto;
 import com.taskflow.taskflow.entity.RegistroTiempo;
 import com.taskflow.taskflow.entity.Tarea;
+import com.taskflow.taskflow.entity.Usuario;
 import com.taskflow.taskflow.exception.DatosInvalidosException;
 import com.taskflow.taskflow.exception.ProyectoNotFoundException;
 import com.taskflow.taskflow.exception.TareaNotFoundException;
@@ -24,16 +26,20 @@ public class TareaServiceImp implements ITareaService {
     private final IProyectoRepository proyectoRepository;
     private final IRegistroTiempoRepository registroTiempoRepository;
 
-    public TareaServiceImp(ITareaRepository tareaRepository, IUsuarioRepository usuarioRepository, IProyectoRepository proyectoRepository, IRegistroTiempoRepository registroTiempoRepository)
-    {
-      this.tareaRepository = tareaRepository;
-      this.usuarioRepository = usuarioRepository;
-      this.proyectoRepository = proyectoRepository;
+    public TareaServiceImp(ITareaRepository tareaRepository,
+                           IUsuarioRepository usuarioRepository,
+                           IProyectoRepository proyectoRepository,
+                           IRegistroTiempoRepository registroTiempoRepository) {
+        this.tareaRepository = tareaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.proyectoRepository = proyectoRepository;
         this.registroTiempoRepository = registroTiempoRepository;
     }
 
     @Override
-    public List<Tarea> listarTareas() { return tareaRepository.findAll(); }
+    public List<Tarea> listarTareas() {
+        return tareaRepository.findAll();
+    }
 
     @Override
     public Optional<Tarea> buscarTareasPorId(Long id) {
@@ -41,83 +47,129 @@ public class TareaServiceImp implements ITareaService {
     }
 
     @Override
-    public List<Tarea> obtenerTareaPorProyectoId(Long ProyectoId) { return tareaRepository.findByProyectoId(ProyectoId); }
+    public List<Tarea> obtenerTareaPorProyectoId(Long proyectoId) {
+        return tareaRepository.findByProyectoId(proyectoId);
+    }
 
     @Override
-    public List<Tarea> obtenerTareaPorAsignadoA(Long asignadoA) { return tareaRepository.findByAsignadoA(asignadoA); }
+    public List<Tarea> obtenerTareaPorAsignadoA(Long asignadoA) {
+        return tareaRepository.findByAsignadoA(asignadoA);
+    }
 
     @Override
     public Tarea guardarTarea(Tarea tarea) {
-        // Valida título obligatorio
+        /*// 1. Valida título obligatorio
         if (tarea.getTitulo() == null || tarea.getTitulo().isBlank()) {
             throw new DatosInvalidosException("El título de la tarea es obligatorio");
-        } validarEstatus(tarea.getEstatus());
-
-        // Solo valida el proyecto SI viene un proyectoId (si es null, lo ignora)
+        }
+        // 2. Asigna estatus por defecto si viene nulo/vacío y valida
+        if (tarea.getEstatus() == null || tarea.getEstatus().isBlank()) {
+            tarea.setEstatus("PENDIENTE");
+        } else {
+            validarEstatus(tarea.getEstatus());
+        }
+        // 3. Asigna prioridad por defecto si viene nula/vacía y valida
+        if (tarea.getPrioridad() == null || tarea.getPrioridad().isBlank()) {
+            tarea.setPrioridad("MEDIA");
+        } else {
+            validarPrioridad(tarea.getPrioridad());
+        }
+        // 4. Solo valida el proyecto SI viene un proyectoId (si es null, lo ignora)
         if (tarea.getProyectoId() != null && !proyectoRepository.existsById(tarea.getProyectoId())) {
             throw new ProyectoNotFoundException("El proyecto con id: " + tarea.getProyectoId() + " no existe");
         }
-
-        // Valida usuario asignado si viene presente
+        // 5. Valida usuario asignado si viene presente
         if (tarea.getAsignadoA() != null && !usuarioRepository.existsById(tarea.getAsignadoA())) {
             throw new UsuarioNotFoundException("El usuario asignado no existe");
-        } return tareaRepository.save(tarea);
+        } return tareaRepository.save(tarea);*/
+        // 1. Valida título obligatorio (Tu código original)
+        if (tarea.getTitulo() == null || tarea.getTitulo().isBlank()) {
+            throw new DatosInvalidosException("El título de la tarea es obligatorio");
+        }
+        // 2. Asigna estatus por defecto... (Tu código original)
+        if (tarea.getEstatus() == null || tarea.getEstatus().isBlank()) {
+            tarea.setEstatus("PENDIENTE");
+        } else {
+            validarEstatus(tarea.getEstatus());
+        }
+        // 3. Asigna prioridad por defecto... (Tu código original)
+        // Asegurar prioridad en mayúsculas por defecto
+        if (tarea.getPrioridad() == null || tarea.getPrioridad().isBlank()) {
+            tarea.setPrioridad("MEDIA");
+        } else {
+            validarPrioridad(tarea.getPrioridad());
+            tarea.setPrioridad(tarea.getPrioridad().toUpperCase());
+        }
+        // 4. Solo valida el proyecto SI viene un proyectoId... (Tu código original)
+        if (tarea.getProyectoId() != null && !proyectoRepository.existsById(tarea.getProyectoId())) {
+            throw new ProyectoNotFoundException("El proyecto con id: " + tarea.getProyectoId() + " no existe");
+        }
+        // 5. Valida y resuelve usuario asignado (Soporta ID o Nombre/Correo de forma segura)
+        Long idRealUsuario = resolverUsuarioAsignado(tarea.getAsignadoA(), tarea.getAsignadoAInput(), tarea.getProyectoId());
+        tarea.setAsignadoA(idRealUsuario);
+
+        return tareaRepository.save(tarea);
     }
 
     @Override
     public Tarea actualizarTarea(Long id, Tarea tareaActualizada) {
-        //validamos exista la tarea antes de modificar si no manda ese error
-        Tarea tareaExistente = tareaRepository.findById(id).orElseThrow(() -> new TareaNotFoundException("No se encontro la tarea con id: "+ id));
-
-        //validamos exista el proyecto nuevamente
+        Tarea tareaExistente = tareaRepository.findById(id)
+                .orElseThrow(() -> new TareaNotFoundException("No se encontró la tarea con id: " + id));
         if (tareaActualizada.getProyectoId() != null && !proyectoRepository.existsById(tareaActualizada.getProyectoId())) {
             throw new ProyectoNotFoundException("El proyecto con id: " + tareaActualizada.getProyectoId() + " no existe");
         }
-        //aqui condicionamos que el usuario asignado debe existir
-        if(tareaActualizada.getAsignadoA()!=null && !usuarioRepository.existsById(tareaActualizada.getAsignadoA())) {
-            throw new UsuarioNotFoundException("El usuario asignado no existe");
-        }
-        //si ya esta completada no se puede modificar
-        if("COMPLETADA".equalsIgnoreCase(tareaExistente.getEstatus())) {
+        // RESOLUCIÓN INTELIGENTE DEL USUARIO (Soporta ID numérico o Nombre/Correo al actualizar)
+        Long idUsuarioReal = resolverUsuarioAsignado(tareaActualizada.getAsignadoA(), tareaActualizada.getAsignadoAInput(), tareaActualizada.getProyectoId());
+        tareaExistente.setAsignadoA(idUsuarioReal);
+        if ("COMPLETADA".equalsIgnoreCase(tareaExistente.getEstatus())) {
             throw new IllegalStateException("No se puede modificar una tarea que ya se encuentra completada");
         }
-
+        if (tareaActualizada.getEstatus() != null) {
+            validarEstatus(tareaActualizada.getEstatus());
+            tareaExistente.setEstatus(tareaActualizada.getEstatus().toUpperCase());
+        }
+        // Bloque de actualización de prioridad
+        if (tareaActualizada.getPrioridad() != null) {
+            // Primero validamos que sea BAJA, MEDIA o ALTA
+            validarPrioridad(tareaActualizada.getPrioridad());
+            // Convertimos a mayúsculas y guardamos en la entidad existente
+            tareaExistente.setPrioridad(tareaActualizada.getPrioridad().toUpperCase());
+        }
         tareaExistente.setTitulo(tareaActualizada.getTitulo());
         tareaExistente.setDescripcion(tareaActualizada.getDescripcion());
-        tareaExistente.setEstatus(tareaActualizada.getEstatus());
-        tareaExistente.setPrioridad(tareaActualizada.getPrioridad());
         tareaExistente.setVencimiento(tareaActualizada.getVencimiento());
         tareaExistente.setProyectoId(tareaActualizada.getProyectoId());
-        tareaExistente.setAsignadoA(tareaActualizada.getAsignadoA());
 
         return tareaRepository.save(tareaExistente);
     }
 
     @Override
     public void eliminarTarea(Long id) {
-        if(!tareaRepository.existsById(id)){
-            throw new TareaNotFoundException("No existe la tarea con id: "+ id);
-        }tareaRepository.deleteById(id);
+        if (!tareaRepository.existsById(id)) {
+            throw new TareaNotFoundException("No existe la tarea con id: " + id);
+        }
+        tareaRepository.deleteById(id);
     }
 
     @Override
     public Tarea finalizarTarea(Long id) {
         Tarea tarea = tareaRepository.findById(id)
-                .orElseThrow(() -> new TareaNotFoundException("No se encontro la tarea con id: " + id));
+                .orElseThrow(() -> new TareaNotFoundException("No se encontró la tarea con id: " + id));
+
         if ("COMPLETADA".equalsIgnoreCase(tarea.getEstatus())) {
             throw new IllegalStateException("La tarea con id " + id + " ya se encuentra completada");
         }
-        //Cambia el estado de la tarea
+
         tarea.setEstatus("COMPLETADA");
 
-        //Si hay un registro de tiempo activo en esta tarea sin 'terminadoTiempo', lo cierras
         List<RegistroTiempo> tiempos = registroTiempoRepository.findByTareaId(id);
         for (RegistroTiempo tiempo : tiempos) {
             if (tiempo.getTerminadoTiempo() == null) {
                 tiempo.setTerminadoTiempo(LocalDateTime.now());
                 registroTiempoRepository.save(tiempo);
             }
-        }return tareaRepository.save(tarea);
+        }
+        return tareaRepository.save(tarea);
     }
 
     @Override
@@ -130,7 +182,8 @@ public class TareaServiceImp implements ITareaService {
         if (!usuarioRepository.existsById(asignadoA)) {
             throw new UsuarioNotFoundException("No existe el usuario con id: " + asignadoA);
         }
-        return tareaRepository.findByAsignadoAAndEstatusIgnoreCase(asignadoA, estatus);
+
+        return tareaRepository.findByAsignadoAYEstatusOrdenadas(asignadoA, estatus.toUpperCase());
     }
 
     private void validarEstatus(String estatus) {
@@ -141,5 +194,60 @@ public class TareaServiceImp implements ITareaService {
         if (!estatusUpper.equals("PENDIENTE") && !estatusUpper.equals("EN_CURSO") && !estatusUpper.equals("COMPLETADA")) {
             throw new IllegalArgumentException("Estatus no válido. Los valores permitidos son: PENDIENTE, EN_CURSO, COMPLETADA");
         }
+    }
+
+    private void validarPrioridad(String prioridad) {
+        if (prioridad == null) {
+            throw new IllegalArgumentException("La prioridad no puede ser nula");
+        }
+        String prioridadUpper = prioridad.toUpperCase();
+        if (!prioridadUpper.equals("ALTA") && !prioridadUpper.equals("MEDIA") && !prioridadUpper.equals("BAJA")) {
+            throw new IllegalArgumentException("Prioridad no válida. Los valores permitidos son: ALTA, MEDIA, BAJA");
+        }
+    }
+    /*private Long resolverUsuarioAsignado(Long asignadoAId, String asignadoAInput) {
+        // 1. Si viene un ID numérico directo, validamos que exista
+        if (asignadoAId != null) {
+            if (!usuarioRepository.existsById(asignadoAId)) {
+                throw new UsuarioNotFoundException("El usuario asignado no existe");
+            } return asignadoAId;
+        }
+        // 2. Si viene texto (nombre de usuario o correo desde el input)
+        if (asignadoAInput != null && !asignadoAInput.isBlank()) {
+            String input = asignadoAInput.trim();
+            Usuario usuario = usuarioRepository.findByCorreo(input).orElseGet(() -> usuarioRepository.findByNombreUsuarioIgnoreCase(input).orElse(null));
+            if (usuario != null) {
+                return usuario.getId();
+            } throw new UsuarioNotFoundException("El usuario asignado no existe");
+        }
+        // 3. SI SE DEJA VACÍO: En lugar de lanzar error, retornas el ID por defecto (por ejemplo, el usuario en curso
+        return idUsuarioActual;
+        }
+    }*/
+    private Long resolverUsuarioAsignado(Long asignadoAId, String asignadoAInput, Long proyectoId) {
+        // 1. Si viene un ID numérico directo de la sugerencia
+        if (asignadoAId != null) {
+            if (!usuarioRepository.existsById(asignadoAId)) {
+                throw new UsuarioNotFoundException("El usuario asignado no existe");
+            } return asignadoAId;
+        }
+        // 2. Si viene texto (nombre de usuario o correo desde el input)
+        if (asignadoAInput != null && !asignadoAInput.isBlank()) {
+            String input = asignadoAInput.trim();
+            Usuario usuario = usuarioRepository.findByCorreo(input).orElseGet(() -> usuarioRepository.findByNombreUsuarioIgnoreCase(input).orElse(null));
+            if (usuario != null) {
+                return usuario.getId();
+            } throw new UsuarioNotFoundException("El usuario asignado no existe");
+        }
+        // 3. SI SE DEJA VACÍO: Auto-asignación inteligente
+        // Si la tarea pertenece a un proyecto, se la asignamos automáticamente al creador del proyecto:
+        if (proyectoId != null) {
+            Proyecto proyecto = proyectoRepository.findById(proyectoId).orElse(null);
+            if (proyecto != null && proyecto.getCreadoPor() != null) {
+                return proyecto.getCreadoPor();
+            }
+        }
+        // Si es una tarea rápida (sin proyecto) o no se encontró creador, se asigna por defecto al usuario 1
+        return 1L;
     }
 }

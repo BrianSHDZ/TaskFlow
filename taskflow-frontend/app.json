@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "taskflow-frontend",
-    "slug": "taskflow-frontend",
+    "name": "TaskFlow Studio",
+    "slug": "taskflow-studio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

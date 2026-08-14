@@ -103,4 +103,10 @@ public class UsuarioServiceImp implements IUsuarioService{
     public boolean existePorCorreo(String correo) {
         return usuarioRepository.existsByCorreo(correo);
     }
+
+    @Override
+    public List<Usuario> buscarUsuariosPorFiltro(String filtro) {
+        return usuarioRepository.buscarPorNombreOCorreo(filtro);
+    }
 }
+

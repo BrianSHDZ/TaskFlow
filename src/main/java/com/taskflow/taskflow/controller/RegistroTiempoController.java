@@ -11,9 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/taskflow")
 public class RegistroTiempoController {
-
     private final IRegistroTiempoService registroTiempoService;
-
     public RegistroTiempoController(IRegistroTiempoService registroTiempoService) {
         this.registroTiempoService = registroTiempoService;
     }
