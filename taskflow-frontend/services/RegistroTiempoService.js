@@ -1,5 +1,4 @@
 import api from './api';
-
 export const iniciarRegistroTiempo = async (tareaId, usuarioId) => {
     try {
         // Agregamos /taskflow antes de /registrotiempo para que coincida con el Controller
@@ -8,14 +7,12 @@ export const iniciarRegistroTiempo = async (tareaId, usuarioId) => {
                 tareaId,
                 usuarioId
             }
-        });
-        return response.data;
+        }); return response.data;
     } catch (error) {
         console.error('Error al iniciar el registro de tiempo:', error.response?.data || error.message);
         throw error;
     }
 };
-
 export const detenerRegistroTiempo = async (id) => {
     try {
         const response = await api.patch(`/taskflow/registrotiempo/${id}/detener`);
@@ -25,7 +22,6 @@ export const detenerRegistroTiempo = async (id) => {
         throw error;
     }
 };
-
 export const obtenerRegistrosPorTarea = async (tareaId) => {
     try {
         const response = await api.get(`/taskflow/registrotiempo/tarea/${tareaId}`);

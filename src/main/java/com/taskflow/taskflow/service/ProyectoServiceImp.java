@@ -73,6 +73,10 @@ public class ProyectoServiceImp implements IProyectoService{
             if (!usuarioRepository.existsById(proyecto.getCreadoPor())) {
                 throw new UsuarioNotFoundException("El usuario con id " + proyecto.getCreadoPor() + " no existe");
             } proyectoActual.setCreadoPor(proyecto.getCreadoPor());
+        }
+        // actualiza estatus si tiene modificacion
+        if (proyecto.getEstatus() != null && !proyecto.getEstatus().isBlank()) {
+            proyectoActual.setEstatus(proyecto.getEstatus());
         } return proyectoRepository.save(proyectoActual);
     }
 
@@ -87,7 +91,8 @@ public class ProyectoServiceImp implements IProyectoService{
 
     @Override
     public List<ProyectoDTO> obtenerProyectosConConteoPorUsuario(Long usuarioId) {
-        List<Proyecto> proyectos = proyectoRepository.findByCreadoPor(usuarioId);
+        //List<Proyecto> proyectos = proyectoRepository.findByCreadoPor(usuarioId);
+        List<Proyecto> proyectos = proyectoRepository.findByCreadoPorAndEstatus(usuarioId, "ACTIVO");
         List<ProyectoDTO> dtos = new ArrayList<>();
 
         for (Proyecto p : proyectos) {
@@ -106,5 +111,13 @@ public class ProyectoServiceImp implements IProyectoService{
                     completadas
             ));
         } return dtos;
+    }
+
+    @Override
+    public List<Proyecto> obtenerProyectosCompletados(Long usuarioId) {
+        if(usuarioId == null || !usuarioRepository.existsById(usuarioId)) {
+            throw new UsuarioNotFoundException("El usuario no existe");
+        }
+        return proyectoRepository.findByCreadoPorAndEstatus(usuarioId, "COMPLETADO");
     }
 }

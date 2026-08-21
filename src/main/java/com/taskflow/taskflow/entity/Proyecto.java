@@ -23,6 +23,8 @@ public class Proyecto {
     private Long creadoPor;
     @Column(name = "creado_en", insertable = false,  updatable = false)
     private LocalDateTime creadoEn;
+    @Column(name = "estatus", length = 20)
+    private String estatus = "ACTIVO";
 
     //CONSTRUCTOR
     public Proyecto(){
@@ -74,4 +76,8 @@ public class Proyecto {
     public void setCreadoEn(LocalDateTime creadoEn) {
         this.creadoEn = creadoEn;
     }
+
+    public String getEstatus() { return estatus; }
+
+    public void setEstatus(String estatus) { this.estatus = estatus; }
 }

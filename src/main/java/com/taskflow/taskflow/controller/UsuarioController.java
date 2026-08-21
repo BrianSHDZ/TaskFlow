@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/taskflow")
+@RequestMapping("/api/taskflow")
 public class UsuarioController {
 
     private final IUsuarioService usuarioService;
@@ -29,7 +29,6 @@ public class UsuarioController {
         Usuario usuarioCreado = usuarioService.nuevoUsuario(usuario);
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioCreado);
     }
-
 
     @PutMapping("/usuario/{id}")
     public Usuario actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario){

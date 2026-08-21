@@ -20,4 +20,6 @@ public interface IProyectoService {
     void eliminarProyecto(Long id);
 
     List<ProyectoDTO> obtenerProyectosConConteoPorUsuario(Long usuarioId);
+
+    List<Proyecto> obtenerProyectosCompletados(Long usuarioId);
 }

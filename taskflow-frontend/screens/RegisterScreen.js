@@ -20,7 +20,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleRegister = async () => {
+    /*const handleRegister = async () => {
         if (!nombre || !email || !password) {
             Alert.alert('Atención', 'Por favor llena todos los campos');
             return;
@@ -31,6 +31,30 @@ export default function RegisterScreen({ onNavigateToLogin }) {
             const data = await registerUser({ nombre, email, password });
             Alert.alert('Éxito', 'Cuenta creada correctamente');
             console.log('Respuesta:', data);
+            onNavigateToLogin();
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo crear la cuenta.');
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };*/
+    const handleRegister = async () => {
+        if (!nombre || !email || !password) {
+            Alert.alert('Atención', 'Por favor llena todos los campos');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const data = await registerUser({
+                nombreUsuario: nombre, // En Java el atributo se llama 'nombreUsuario'
+                correo: email,         // En Java el atributo se llama 'correo'
+                contrasena: password,  // En Java el atributo se llama 'contrasena'
+                //rol: { id: 1 }         // Requerido por la anotación @NotNull en Usuario.java (ID de rol por defecto)
+            });
+
+            Alert.alert('Éxito', 'Cuenta creada correctamente');
             onNavigateToLogin();
         } catch (error) {
             Alert.alert('Error', 'No se pudo crear la cuenta.');

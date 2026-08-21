@@ -15,7 +15,8 @@ export const loginUser = async (credentials) => {
 // Petición de registro de usuario
 export const registerUser = async (userData) => {
     try {
-        const response = await API.post('/auth/register', userData);
+        // Agregamos /taskflow para que la ruta final completa sea /api/taskflow/usuario
+        const response = await API.post('/taskflow/usuario', userData);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error;

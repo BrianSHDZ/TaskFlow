@@ -13,13 +13,14 @@ import {
 import { searchUsuarios } from '../services/UsuarioService';
 import {
     getTareasPorProyecto,
-    createTareaRapida,
+    createTarea,
     updateTareaStatus,
     updateTareaCompleta,
     deleteTarea
 } from '../services/TareaService';
-import { iniciarRegistroTiempo } from '../services/RegistroTiempoService';
+import { iniciarRegistroTiempo, obtenerRegistrosPorTarea } from '../services/RegistroTiempoService';
 import TareaItem from './TareaItem';
+import { updateProyectoStatus } from '../services/ProyectoService';
 
 export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
     const [tareas, setTareas] = useState([]);
@@ -29,6 +30,7 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
     const [modalCrearVisible, setModalCrearVisible] = useState(false);
     const [titulo, setTitulo] = useState('');
     const [descripcion, setDescripcion] = useState('');
+    const [registroTiempo, setRegistroTiempo] = useState(null);
     const [prioridad, setPrioridad] = useState('MEDIA');
 
     // Fechas separadas
@@ -67,6 +69,22 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
     const [panelLiderExpandido, setPanelLiderExpandido] = useState(false);
     const [correoNuevoColaborador, setCorreoNuevoColaborador] = useState('');
     const [codigoQrInput, setCodigoQrInput] = useState('');
+    const [usuariosDb, setUsuariosDb] = useState([]);
+
+    useEffect(() => {
+        const fetchUsuarios = async () => {
+            try {
+                const response = await fetch('http://10.0.2.2:8080/api/taskflow/usuario');
+                if (response.ok) {
+                    const data = await response.json();
+                    setUsuariosDb(data);
+                }
+            } catch (error) {
+                console.error("Error al cargar los usuarios de la base de datos:", error);
+            }
+        };
+        fetchUsuarios();
+    }, []);
 
     useEffect(() => {
         cargarTareasDelProyecto();
@@ -139,7 +157,7 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
         try {
             const vencimientoCompleto = construirFechaHora(fechaVencimiento, horaVencimiento);
 
-            const response = await createTareaRapida({
+            const response = await createTarea({
                 titulo: titulo.trim(),
                 descripcion: descripcion.trim() || null,
                 prioridad: prioridad,
@@ -256,7 +274,7 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
         );
     };
 
-    const abrirDetalleTarea = (tarea) => {
+    const abrirDetalleTarea = async (tarea) => { // <-- 1. Agregamos la palabra 'async'
         setTareaSeleccionada(tarea);
         setEditTitulo(tarea.titulo || '');
         setEditDescripcion(tarea.descripcion || '');
@@ -273,13 +291,27 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
 
         setEditAsignadoInput(tarea.asignadoNombre || tarea.usuarioAsignado?.nombre || '');
         setAsignadoIdFinalEditar(tarea.asignadoA || null);
+        const usuarioModal = usuariosDb.find(u => u.id === tarea.asignadoA);
+
         setUsuarioSeleccionadoObjEditar({
-            nombre: tarea.asignadoNombre || tarea.usuarioAsignado?.nombre || 'Usuario',
-            correo: tarea.usuarioAsignado?.correo || 'Correo no disponible',
+            nombreUsuario: usuarioModal ? usuarioModal.nombreUsuario : 'Usuario',
+            correo: usuarioModal ? usuarioModal.correo : 'Correo no disponible',
             id: tarea.asignadoA
         });
+
         setIsEditing(false);
         setModalDetalleVisible(true);
+
+        // --- 2. NUEVO CÓDIGO PARA TRAER EL TIEMPO ---
+        setRegistroTiempo(null); // Limpiamos datos anteriores
+        try {
+            const registros = await obtenerRegistrosPorTarea(tarea.id);
+            if (registros && registros.length > 0) {
+                setRegistroTiempo(registros[registros.length - 1]); // Tomamos el último registro
+            }
+        } catch (error) {
+            console.log('Error al obtener el registro de tiempo:', error);
+        }
     };
 
     const getPriorityStyle = (p) => {
@@ -295,10 +327,13 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
         const mapaUsuarios = new Map();
         tareas.forEach(t => {
             if (t.asignadoA) {
+                // Cruzamos el ID de la tarea con la lista de usuarios completa
+                const usuarioEncontrado = usuariosDb.find(u => u.id === t.asignadoA);
+
                 mapaUsuarios.set(t.asignadoA, {
                     id: t.asignadoA,
-                    nombre: t.asignadoNombre || t.usuarioAsignado?.nombre || 'Usuario sin nombre',
-                    correo: t.usuarioAsignado?.correo || 'No disponible'
+                    nombreUsuario: usuarioEncontrado ? usuarioEncontrado.nombreUsuario : 'Usuario sin nombre',
+                    correo: usuarioEncontrado ? usuarioEncontrado.correo : 'No disponible'
                 });
             }
         });
@@ -310,11 +345,14 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
     const calcularTiempoRealizado = (inicio, termino) => {
         if (!inicio || !termino) return 'No disponible';
         try {
-            const fechaInicio = new Date(inicio);
-            const fechaTermino = new Date(termino);
+            const formatoInicio = typeof inicio === 'string' ? inicio.replace(' ', 'T') : inicio;
+            const formatoTermino = typeof termino === 'string' ? termino.replace(' ', 'T') : termino;
+
+            const fechaInicio = new Date(formatoInicio);
+            const fechaTermino = new Date(formatoTermino);
             const diferenciaMs = fechaTermino - fechaInicio;
 
-            if (diferenciaMs <= 0) return 'Menos de un minuto';
+            if (isNaN(diferenciaMs) || diferenciaMs <= 0) return 'Menos de un minuto';
 
             const segundos = Math.floor(diferenciaMs / 1000);
             const minutos = Math.floor(segundos / 60);
@@ -328,6 +366,32 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
         } catch (e) {
             return 'No disponible';
         }
+    };
+
+    // Lógica para saber si se puede completar el proyecto
+    const todasLasTareasCompletadas = tareas.length > 0 && tareas.every(t => t.estatus === 'COMPLETADA');
+
+    const handleCompletarProyecto = () => {
+        Alert.alert(
+            'Finalizar Proyecto',
+            '¿Estás seguro de marcar este proyecto como completado? Pasará al historial.',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Sí, finalizar',
+                    onPress: async () => {
+                        try {
+                            // Llamada a tu API para actualizar el estatus del proyecto
+                            await updateProyectoStatus(proyecto.id, 'COMPLETADO');
+                            Alert.alert('¡Éxito!', 'El proyecto ha sido completado.');
+                            onBack(); // Te regresa al HomeScreen donde ya no aparecerá
+                        } catch (error) {
+                            Alert.alert('Error', 'No se pudo completar el proyecto.');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -369,12 +433,13 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
                     ) : (
                         usuariosProyecto.map((u) => (
                             <View key={u.id} style={styles.userCardItem}>
-                                <Text style={styles.userCardName}>👤 {u.nombre}</Text>
-                                <Text style={styles.userCardSub}>✉️ {u.correo}</Text>
+                                {/* Se reemplaza u.nombre por u.nombreUsuario */}
+                                <Text style={styles.userCardName}>👤 {u.nombreUsuario || 'Sin nombre'}</Text>
+                                <Text style={styles.userCardSub}>✉️ {u.correo || 'Sin correo'}</Text>
                                 <Text style={styles.userCardSub}>🆔 ID de Usuario: {u.id}</Text>
                                 <TouchableOpacity
                                     style={styles.removeUserMiniBtn}
-                                    onPress={() => Alert.alert('Colaborador', `¿Desea eliminar a ${u.nombre} del proyecto?`)}
+                                    onPress={() => Alert.alert('Colaborador', `¿Desea eliminar a ${u.nombreUsuario} del proyecto?`)}
                                 >
                                     <Text style={styles.removeUserMiniBtnText}>Eliminar Colaborador</Text>
                                 </TouchableOpacity>
@@ -439,6 +504,22 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
                 </View>
 
                 {loading ? (
+                 /*   <ActivityIndicator size="small" color="#2563EB" style={{ marginTop: 20 }} />
+                ) : tareas.length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No hay tareas asignadas a este proyecto.</Text>
+                    </View>
+                ) : (
+                    tareas.map((item) => (
+                        <TareaItem
+                            key={item.id}
+                            item={item}
+                            onPress={abrirDetalleTarea}
+                            getPriorityStyle={getPriorityStyle}
+                        />
+                    ))
+                )}
+            </ScrollView>*/
                     <ActivityIndicator size="small" color="#2563EB" style={{ marginTop: 20 }} />
                 ) : tareas.length === 0 ? (
                     <View style={styles.emptyContainer}>
@@ -453,6 +534,25 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
                             getPriorityStyle={getPriorityStyle}
                         />
                     ))
+                )}
+
+                {/* NUEVO BOTÓN DE FINALIZAR PROYECTO */}
+                {todasLasTareasCompletadas && (
+                    <TouchableOpacity
+                        style={{
+                            backgroundColor: '#10B981',
+                            padding: 15,
+                            borderRadius: 10,
+                            alignItems: 'center',
+                            marginTop: 20,
+                            marginBottom: 40
+                        }}
+                        onPress={handleCompletarProyecto}
+                    >
+                        <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>
+                            🏆 Finalizar Proyecto
+                        </Text>
+                    </TouchableOpacity>
                 )}
             </ScrollView>
 
@@ -471,14 +571,23 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
                                 <View style={styles.modalMetaBox}>
                                     {tareaSeleccionada.estatus === 'COMPLETADA' ? (
                                         <>
-                                            <Text style={styles.modalMetaText}>Fecha de término: {tareaSeleccionada.terminadoTiempo || 'No especificada'}</Text>
-                                            <Text style={styles.modalMetaText}>Fecha de inicio: {tareaSeleccionada.inicioTiempo || 'No especificada'}</Text>
-                                            <Text style={styles.modalMetaText}>Tiempo en realizarse: {calcularTiempoRealizado(tareaSeleccionada.inicioTiempo, tareaSeleccionada.terminadoTiempo)}</Text>
+                                            <Text style={styles.modalMetaText}>
+                                                Fecha de inicio: {registroTiempo?.inicioTiempo || tareaSeleccionada.creadoEn || tareaSeleccionada.creado_en || 'No especificada'}
+                                            </Text>
+                                            <Text style={styles.modalMetaText}>
+                                                Fecha de término: {registroTiempo?.terminadoTiempo || tareaSeleccionada.vencimiento || 'No especificada'}
+                                            </Text>
+                                            <Text style={styles.modalMetaText}>
+                                                Tiempo en realizarse: {calcularTiempoRealizado(
+                                                registroTiempo?.inicioTiempo || tareaSeleccionada.creadoEn || tareaSeleccionada.creado_en,
+                                                registroTiempo?.terminadoTiempo || tareaSeleccionada.vencimiento
+                                            )}
+                                            </Text>
                                         </>
                                     ) : (
                                         <Text style={styles.modalMetaText}>Vencimiento: {tareaSeleccionada.vencimiento || 'No definida'}</Text>
                                     )}
-                                    <Text style={styles.modalMetaText}>Asignado a ID: {tareaSeleccionada.asignadoA}</Text>
+                                    <Text style={styles.modalMetaText}>Asignado a ID: {tareaSeleccionada.asignadoA || tareaSeleccionada.asignado_a || 'Sin asignar'}</Text>
                                 </View>
 
                                 <View style={styles.statusPriorityRow}>

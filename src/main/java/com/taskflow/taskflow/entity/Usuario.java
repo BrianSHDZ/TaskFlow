@@ -24,7 +24,7 @@ public class Usuario {
     @Size(min = 12, max = 20, message = "La contrasena debe tener entre 12 a 20 caracteres")
     @Column(name = "contrasena",  nullable = false, length = 250)
     private String contrasena;
-    @NotNull(message = "Debe asignar un rol al usuario")
+    //@NotNull(message = "Debe asignar un rol al usuario")
     @ManyToOne
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol; //Creamos un objeto de tipo rol el cual hace referencia al id de roles(ahi se define el rol de cada usuario)

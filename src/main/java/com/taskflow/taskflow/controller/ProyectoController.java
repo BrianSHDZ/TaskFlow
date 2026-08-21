@@ -36,6 +36,11 @@ public class ProyectoController {
         return ResponseEntity.ok(proyectos);
     }
 
+    @GetMapping("/usuario/{usuarioId}/completados")
+    public ResponseEntity<List<Proyecto>> obtenerProyectosCompletados(@PathVariable Long usuarioId) {
+        return ResponseEntity.ok(proyectoService.obtenerProyectosCompletados(usuarioId));
+    }
+
     @PostMapping
     public ResponseEntity<?> guardarProyecto(@RequestBody @Valid Proyecto proyecto) {
         Proyecto nuevoProyecto = proyectoService.guardarProyecto(proyecto);
@@ -45,6 +50,22 @@ public class ProyectoController {
     @PutMapping("/{id}")
     public Proyecto actualizarProyecto(@PathVariable Long id, @RequestBody @Valid Proyecto proyecto) {
         return proyectoService.actualizarProyecto(id, proyecto);
+    }
+
+    @PutMapping("/{id}/estatus")
+    public ResponseEntity<?> actualizarEstatusProyecto(@PathVariable Long id, @RequestParam String estatus) {
+        try {
+            // 1. Buscamos el proyecto actual por su ID
+            // (Ajusta el nombre del método de tu servicio si es diferente)
+            Proyecto proyecto = proyectoService.obtenerProyectoPorId(id);
+            // 2. Le cambiamos únicamente el estatus
+            proyecto.setEstatus(estatus);
+            // 3. Reutilizamos tu método existente para guardarlo actualizado
+            Proyecto proyectoActualizado = proyectoService.actualizarProyecto(id, proyecto);
+            return ResponseEntity.ok(proyectoActualizado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al actualizar el estatus: " + e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

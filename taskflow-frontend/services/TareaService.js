@@ -82,3 +82,19 @@ export const updateTareaCompleta = async (tareaId, tareaData) => {
         throw error;
     }
 };
+
+// Crear Tarea asignada a un Proyecto
+export const createTarea = async (tareaData) => {
+    // Coincide con: POST /api/taskflow/tarea (SIN el /rapida)
+    const response = await axios.post(`${API_URL}`, {
+        titulo: tareaData.titulo,
+        descripcion: tareaData.descripcion,
+        estatus: tareaData.estatus,
+        prioridad: tareaData.prioridad,
+        vencimiento: tareaData.vencimiento,
+        proyectoId: tareaData.proyectoId, // Tu backend Java sí respetará este ID aquí
+        asignadoA: tareaData.asignadoA,
+        asignadoAInput: tareaData.asignadoAInput
+    });
+    return response.data;
+};

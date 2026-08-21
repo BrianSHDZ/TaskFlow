@@ -38,3 +38,16 @@ export const deleteProyecto = async (proyectoId) => {
     const response = await axios.delete(`${API_URL}/${proyectoId}`);
     return response.data;
 };
+
+export const updateProyectoStatus = async (proyectoId, estatus) => {
+    // Nota: Asegúrate de que esta ruta coincida con el endpoint en tu controlador de Spring Boot
+    const response = await axios.put(`${API_URL}/${proyectoId}/estatus`, null, {
+        params: { estatus: estatus }
+    });
+    return response.data;
+};
+
+export const getProyectosCompletadosPorUsuario = async (usuarioId) => {
+    const response = await axios.get(`${API_URL}/usuario/${usuarioId}/completados`);
+    return response.data;
+};

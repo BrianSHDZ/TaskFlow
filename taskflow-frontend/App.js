@@ -168,12 +168,14 @@ export default function App() {
 //version 7
 import React, { useState } from 'react';
 import LoginScreen from './screens/LoginScreen';
+import RegisterScreen from './screens/RegisterScreen';
 import HomeScreen from './screens/HomeScreen';
 import HistorialScreen from './screens/HistorialScreen';
 import ProyectoDetailScreen from './screens/ProyectoDetailScreen';
 
 export default function App() {
-    const [user, setUser] = useState({ id: 1, nombreUsuario: 'Luis' }); // O puedes iniciarlo en null si prefieres arrancar en login
+    const [user, setUser] = useState(null);
+    const [authScreen, setAuthScreen] = useState('LOGIN'); // 'LOGIN' o 'REGISTER'
     const [currentScreen, setCurrentScreen] = useState('HOME');
     const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
 
@@ -182,11 +184,20 @@ export default function App() {
         setCurrentScreen('PROYECTO');
     };
 
-    // Si no hay usuario activo, muestra la pantalla de inicio de sesión
+    // Si no hay usuario, maneja la navegación entre Login y Registro
     if (!user) {
+        if (authScreen === 'REGISTER') {
+            return (
+                <RegisterScreen
+                    onNavigateToLogin={() => setAuthScreen('LOGIN')}
+                />
+            );
+        }
+
         return (
             <LoginScreen
                 onLoginSuccess={(userData) => setUser(userData)}
+                onNavigateToRegister={() => setAuthScreen('REGISTER')}
             />
         );
     }
@@ -213,7 +224,10 @@ export default function App() {
     return (
         <HomeScreen
             user={user}
-            onLogout={() => setUser(null)}
+            onLogout={() => {
+                setUser(null);
+                setCurrentScreen('HOME');
+            }}
             onNavigateToHistorial={() => setCurrentScreen('HISTORIAL')}
             onNavigateToProyecto={handleNavigateToProyecto}
         />
