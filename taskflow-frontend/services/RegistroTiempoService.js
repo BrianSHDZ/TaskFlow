@@ -1,7 +1,6 @@
 import api from './api';
 export const iniciarRegistroTiempo = async (tareaId, usuarioId) => {
     try {
-        // Agregamos /taskflow antes de /registrotiempo para que coincida con el Controller
         const response = await api.post(`/taskflow/registrotiempo/iniciar`, null, {
             params: {
                 tareaId,

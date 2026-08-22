@@ -1,6 +1,6 @@
 import API from './api';
 
-// Petición de inicio de sesión mapeada con los nombres correctos del backend
+// Petición de inicio de sesión mapeada con los nombres correctos
 export const loginUser = async (credentials) => {
     try {
         const response = await API.post('/auth/login', {
@@ -15,7 +15,6 @@ export const loginUser = async (credentials) => {
 // Petición de registro de usuario
 export const registerUser = async (userData) => {
     try {
-        // Agregamos /taskflow para que la ruta final completa sea /api/taskflow/usuario
         const response = await API.post('/taskflow/usuario', userData);
         return response.data;
     } catch (error) {

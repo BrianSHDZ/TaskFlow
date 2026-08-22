@@ -51,7 +51,7 @@ export default function RegisterScreen({ onNavigateToLogin }) {
                 nombreUsuario: nombre, // En Java el atributo se llama 'nombreUsuario'
                 correo: email,         // En Java el atributo se llama 'correo'
                 contrasena: password,  // En Java el atributo se llama 'contrasena'
-                //rol: { id: 1 }         // Requerido por la anotación @NotNull en Usuario.java (ID de rol por defecto)
+                //rol: { id: 1 }
             });
 
             Alert.alert('Éxito', 'Cuenta creada correctamente');

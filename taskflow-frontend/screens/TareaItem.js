@@ -59,4 +59,3 @@ const styles = StyleSheet.create({
     badgeCompleted: { color: '#10B981', backgroundColor: '#ECFDF5' },
     priorityBadge: { fontSize: 10, fontWeight: 'bold', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
 });
-//version 2

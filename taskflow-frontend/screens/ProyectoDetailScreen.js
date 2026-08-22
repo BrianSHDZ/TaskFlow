@@ -274,7 +274,7 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
         );
     };
 
-    const abrirDetalleTarea = async (tarea) => { // <-- 1. Agregamos la palabra 'async'
+    const abrirDetalleTarea = async (tarea) => {
         setTareaSeleccionada(tarea);
         setEditTitulo(tarea.titulo || '');
         setEditDescripcion(tarea.descripcion || '');
@@ -301,13 +301,11 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
 
         setIsEditing(false);
         setModalDetalleVisible(true);
-
-        // --- 2. NUEVO CÓDIGO PARA TRAER EL TIEMPO ---
-        setRegistroTiempo(null); // Limpiamos datos anteriores
+        setRegistroTiempo(null);
         try {
             const registros = await obtenerRegistrosPorTarea(tarea.id);
             if (registros && registros.length > 0) {
-                setRegistroTiempo(registros[registros.length - 1]); // Tomamos el último registro
+                setRegistroTiempo(registros[registros.length - 1]);
             }
         } catch (error) {
             console.log('Error al obtener el registro de tiempo:', error);
@@ -384,7 +382,7 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
                             // Llamada a tu API para actualizar el estatus del proyecto
                             await updateProyectoStatus(proyecto.id, 'COMPLETADO');
                             Alert.alert('¡Éxito!', 'El proyecto ha sido completado.');
-                            onBack(); // Te regresa al HomeScreen donde ya no aparecerá
+                            onBack();
                         } catch (error) {
                             Alert.alert('Error', 'No se pudo completar el proyecto.');
                         }
@@ -504,22 +502,6 @@ export default function ProyectoDetailScreen({ proyecto, user, onBack }) {
                 </View>
 
                 {loading ? (
-                 /*   <ActivityIndicator size="small" color="#2563EB" style={{ marginTop: 20 }} />
-                ) : tareas.length === 0 ? (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No hay tareas asignadas a este proyecto.</Text>
-                    </View>
-                ) : (
-                    tareas.map((item) => (
-                        <TareaItem
-                            key={item.id}
-                            item={item}
-                            onPress={abrirDetalleTarea}
-                            getPriorityStyle={getPriorityStyle}
-                        />
-                    ))
-                )}
-            </ScrollView>*/
                     <ActivityIndicator size="small" color="#2563EB" style={{ marginTop: 20 }} />
                 ) : tareas.length === 0 ? (
                     <View style={styles.emptyContainer}>

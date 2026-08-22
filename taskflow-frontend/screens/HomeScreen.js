@@ -72,22 +72,6 @@ export default function HomeScreen({ user, onLogout, onNavigateToHistorial, onNa
         }
     };
 
-    /*const cargarProyectos = async () => {
-        if (!user?.id) {
-            setLoadingProyectos(false);
-            return;
-        }
-        try {
-            setLoadingProyectos(true);
-            const data = await getProyectosPorUsuario(user.id);
-            setProyectos(data);
-        } catch (error) {
-            console.log('Error al obtener proyectos:', error);
-        } finally {
-            setLoadingProyectos(false);
-        }
-    };*/
-    //versio 2
     const cargarProyectos = async () => {
         if (!user?.id) {
             setLoadingProyectos(false);
@@ -96,7 +80,6 @@ export default function HomeScreen({ user, onLogout, onNavigateToHistorial, onNa
         try {
             setLoadingProyectos(true);
             const data = await getProyectosPorUsuario(user.id);
-            // Filtrar para mostrar solo los proyectos que NO estén completados
             const proyectosActivos = data.filter(proj => proj.estatus !== 'COMPLETADO');
             setProyectos(proyectosActivos);
         } catch (error) {

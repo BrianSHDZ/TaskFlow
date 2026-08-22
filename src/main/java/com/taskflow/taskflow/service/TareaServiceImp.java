@@ -58,31 +58,7 @@ public class TareaServiceImp implements ITareaService {
 
     @Override
     public Tarea guardarTarea(Tarea tarea) {
-        /*// 1. Valida título obligatorio
-        if (tarea.getTitulo() == null || tarea.getTitulo().isBlank()) {
-            throw new DatosInvalidosException("El título de la tarea es obligatorio");
-        }
-        // 2. Asigna estatus por defecto si viene nulo/vacío y valida
-        if (tarea.getEstatus() == null || tarea.getEstatus().isBlank()) {
-            tarea.setEstatus("PENDIENTE");
-        } else {
-            validarEstatus(tarea.getEstatus());
-        }
-        // 3. Asigna prioridad por defecto si viene nula/vacía y valida
-        if (tarea.getPrioridad() == null || tarea.getPrioridad().isBlank()) {
-            tarea.setPrioridad("MEDIA");
-        } else {
-            validarPrioridad(tarea.getPrioridad());
-        }
-        // 4. Solo valida el proyecto SI viene un proyectoId (si es null, lo ignora)
-        if (tarea.getProyectoId() != null && !proyectoRepository.existsById(tarea.getProyectoId())) {
-            throw new ProyectoNotFoundException("El proyecto con id: " + tarea.getProyectoId() + " no existe");
-        }
-        // 5. Valida usuario asignado si viene presente
-        if (tarea.getAsignadoA() != null && !usuarioRepository.existsById(tarea.getAsignadoA())) {
-            throw new UsuarioNotFoundException("El usuario asignado no existe");
-        } return tareaRepository.save(tarea);*/
-        // 1. Valida título obligatorio (Tu código original)
+
         if (tarea.getTitulo() == null || tarea.getTitulo().isBlank()) {
             throw new DatosInvalidosException("El título de la tarea es obligatorio");
         }
@@ -92,7 +68,7 @@ public class TareaServiceImp implements ITareaService {
         } else {
             validarEstatus(tarea.getEstatus());
         }
-        // 3. Asigna prioridad por defecto... (Tu código original)
+        // 3. Asigna prioridad por defecto...
         // Asegurar prioridad en mayúsculas por defecto
         if (tarea.getPrioridad() == null || tarea.getPrioridad().isBlank()) {
             tarea.setPrioridad("MEDIA");
@@ -205,25 +181,7 @@ public class TareaServiceImp implements ITareaService {
             throw new IllegalArgumentException("Prioridad no válida. Los valores permitidos son: ALTA, MEDIA, BAJA");
         }
     }
-    /*private Long resolverUsuarioAsignado(Long asignadoAId, String asignadoAInput) {
-        // 1. Si viene un ID numérico directo, validamos que exista
-        if (asignadoAId != null) {
-            if (!usuarioRepository.existsById(asignadoAId)) {
-                throw new UsuarioNotFoundException("El usuario asignado no existe");
-            } return asignadoAId;
-        }
-        // 2. Si viene texto (nombre de usuario o correo desde el input)
-        if (asignadoAInput != null && !asignadoAInput.isBlank()) {
-            String input = asignadoAInput.trim();
-            Usuario usuario = usuarioRepository.findByCorreo(input).orElseGet(() -> usuarioRepository.findByNombreUsuarioIgnoreCase(input).orElse(null));
-            if (usuario != null) {
-                return usuario.getId();
-            } throw new UsuarioNotFoundException("El usuario asignado no existe");
-        }
-        // 3. SI SE DEJA VACÍO: En lugar de lanzar error, retornas el ID por defecto (por ejemplo, el usuario en curso
-        return idUsuarioActual;
-        }
-    }*/
+
     private Long resolverUsuarioAsignado(Long asignadoAId, String asignadoAInput, Long proyectoId) {
         // 1. Si viene un ID numérico directo de la sugerencia
         if (asignadoAId != null) {
