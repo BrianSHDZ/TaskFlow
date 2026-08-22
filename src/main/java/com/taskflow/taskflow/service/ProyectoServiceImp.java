@@ -1,6 +1,8 @@
 package com.taskflow.taskflow.service;
 
+import com.taskflow.taskflow.dto.ProyectoDTO;
 import com.taskflow.taskflow.entity.Proyecto;
+import com.taskflow.taskflow.entity.Tarea;
 import com.taskflow.taskflow.exception.DatosInvalidosException;
 import com.taskflow.taskflow.exception.ProyectoNotFoundException;
 import com.taskflow.taskflow.exception.ProyectoWithTareaException;
@@ -10,6 +12,7 @@ import com.taskflow.taskflow.repository.ITareaRepository;
 import com.taskflow.taskflow.repository.IUsuarioRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -70,6 +73,10 @@ public class ProyectoServiceImp implements IProyectoService{
             if (!usuarioRepository.existsById(proyecto.getCreadoPor())) {
                 throw new UsuarioNotFoundException("El usuario con id " + proyecto.getCreadoPor() + " no existe");
             } proyectoActual.setCreadoPor(proyecto.getCreadoPor());
+        }
+        // actualiza estatus si tiene modificacion
+        if (proyecto.getEstatus() != null && !proyecto.getEstatus().isBlank()) {
+            proyectoActual.setEstatus(proyecto.getEstatus());
         } return proyectoRepository.save(proyectoActual);
     }
 
@@ -80,5 +87,37 @@ public class ProyectoServiceImp implements IProyectoService{
             throw new ProyectoWithTareaException("No se puede eliminar el proyecto porque tiene tareas asociadas. Elimina o reasigna las tareas");
         }
         proyectoRepository.delete(proyecto);
+    }
+
+    @Override
+    public List<ProyectoDTO> obtenerProyectosConConteoPorUsuario(Long usuarioId) {
+        //List<Proyecto> proyectos = proyectoRepository.findByCreadoPor(usuarioId);
+        List<Proyecto> proyectos = proyectoRepository.findByCreadoPorAndEstatus(usuarioId, "ACTIVO");
+        List<ProyectoDTO> dtos = new ArrayList<>();
+
+        for (Proyecto p : proyectos) {
+            List<Tarea> tareasDelProyecto = tareaRepository.findByProyectoId(p.getId());
+
+            long total = tareasDelProyecto.size();
+            long completadas = tareasDelProyecto.stream()
+                    .filter(t -> "COMPLETADA".equalsIgnoreCase(t.getEstatus()))
+                    .count();
+            dtos.add(new ProyectoDTO(
+                    p.getId(),
+                    p.getTitulo(),
+                    p.getDescripcion(),
+                    p.getCreadoPor(),
+                    total,
+                    completadas
+            ));
+        } return dtos;
+    }
+
+    @Override
+    public List<Proyecto> obtenerProyectosCompletados(Long usuarioId) {
+        if(usuarioId == null || !usuarioRepository.existsById(usuarioId)) {
+            throw new UsuarioNotFoundException("El usuario no existe");
+        }
+        return proyectoRepository.findByCreadoPorAndEstatus(usuarioId, "COMPLETADO");
     }
 }

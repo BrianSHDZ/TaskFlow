@@ -34,7 +34,6 @@ public class RegistroTiempoImp implements IRegistroTiempoService {
             throw new UsuarioNotFoundException("Usuario no encontrado");
         }
         RegistroTiempo registro = new RegistroTiempo();
-
         registro.setTareaId(tareaId);
         registro.setUsuarioId(usuarioId);
         registro.setInicioTiempo(LocalDateTime.now());
@@ -56,8 +55,7 @@ public class RegistroTiempoImp implements IRegistroTiempoService {
         //validamos que la tarea exista
         if(!tareaRepository.existsById(tareaId)){
             throw new TareaNotFoundException("Tarea no encontrada");
-        }
-        return registroTiempoRepository.findByTareaId(tareaId);
+        } return registroTiempoRepository.findByTareaId(tareaId);
     }
 
     @Override
@@ -65,7 +63,6 @@ public class RegistroTiempoImp implements IRegistroTiempoService {
         //validamos que el usuario exista
         if(!usuarioRepository.existsById(usuarioId)){
             throw new UsuarioNotFoundException("Usuario no encontrado");
-        }
-        return registroTiempoRepository.findByUsuarioId(usuarioId);
+        }  return registroTiempoRepository.findByUsuarioId(usuarioId);
     }
 }

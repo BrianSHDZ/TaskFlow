@@ -9,11 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/taskflow")
+@RequestMapping("/api/taskflow")
 public class RegistroTiempoController {
-
     private final IRegistroTiempoService registroTiempoService;
-
     public RegistroTiempoController(IRegistroTiempoService registroTiempoService) {
         this.registroTiempoService = registroTiempoService;
     }

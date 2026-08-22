@@ -1,5 +1,6 @@
 package com.taskflow.taskflow.controller;
 
+import com.taskflow.taskflow.dto.ProyectoDTO;
 import com.taskflow.taskflow.entity.Proyecto;
 import com.taskflow.taskflow.service.IProyectoService;
 import jakarta.validation.Valid;
@@ -10,37 +11,65 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/taskflow")
+@RequestMapping("/api/taskflow/proyecto") // Prefijo base para todos los endpoints de proyectos
 public class ProyectoController {
 
     private final IProyectoService proyectoService;
 
-    public ProyectoController(IProyectoService proyectoService) { this.proyectoService = proyectoService; }
+    public ProyectoController(IProyectoService proyectoService) {
+        this.proyectoService = proyectoService;
+    }
 
-    @GetMapping("/proyecto")
-    public List<Proyecto> listaProyecto(){ return proyectoService.listarProyectos(); }
+    @GetMapping
+    public List<Proyecto> listaProyecto() {
+        return proyectoService.listarProyectos();
+    }
 
-    @GetMapping("/proyecto/{id}")
-    public ResponseEntity<?> obtenerProyectoPorId(@PathVariable Long id){
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerProyectoPorId(@PathVariable Long id) {
         return ResponseEntity.ok(proyectoService.obtenerProyectoPorId(id));
     }
 
-    @GetMapping("/proyecto/usuario/{usuarioId}")
-    public ResponseEntity<?> obtenerProyectoPorUsuario(@PathVariable Long usuarioId){
-        return ResponseEntity.ok(proyectoService.obtenerProyectoPorUsuario(usuarioId));
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<ProyectoDTO>> obtenerProyectoPorUsuario(@PathVariable Long usuarioId) {
+        List<ProyectoDTO> proyectos = proyectoService.obtenerProyectosConConteoPorUsuario(usuarioId);
+        return ResponseEntity.ok(proyectos);
     }
 
-    @PostMapping("/proyecto")
-    public ResponseEntity<?> guardarProyecto(@RequestBody @Valid Proyecto proyecto){
+    @GetMapping("/usuario/{usuarioId}/completados")
+    public ResponseEntity<List<Proyecto>> obtenerProyectosCompletados(@PathVariable Long usuarioId) {
+        return ResponseEntity.ok(proyectoService.obtenerProyectosCompletados(usuarioId));
+    }
+
+    @PostMapping
+    public ResponseEntity<?> guardarProyecto(@RequestBody @Valid Proyecto proyecto) {
         Proyecto nuevoProyecto = proyectoService.guardarProyecto(proyecto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProyecto);
     }
 
-    @PutMapping("/proyecto/{id}")
-    public Proyecto actualizarProyecto(@PathVariable Long id,@RequestBody @Valid Proyecto proyecto){
+    @PutMapping("/{id}")
+    public Proyecto actualizarProyecto(@PathVariable Long id, @RequestBody @Valid Proyecto proyecto) {
         return proyectoService.actualizarProyecto(id, proyecto);
     }
 
-    @DeleteMapping("/proyecto/{id}")
-    public void eliminarProyecto(@PathVariable Long id){ proyectoService.eliminarProyecto(id); }
+    @PutMapping("/{id}/estatus")
+    public ResponseEntity<?> actualizarEstatusProyecto(@PathVariable Long id, @RequestParam String estatus) {
+        try {
+            // 1. Buscamos el proyecto actual por su ID
+            // (Ajusta el nombre del método de tu servicio si es diferente)
+            Proyecto proyecto = proyectoService.obtenerProyectoPorId(id);
+            // 2. Le cambiamos únicamente el estatus
+            proyecto.setEstatus(estatus);
+            // 3. Reutilizamos tu método existente para guardarlo actualizado
+            Proyecto proyectoActualizado = proyectoService.actualizarProyecto(id, proyecto);
+            return ResponseEntity.ok(proyectoActualizado);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al actualizar el estatus: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public void eliminarProyecto(@PathVariable Long id) {
+        proyectoService.eliminarProyecto(id);
+    }
 }

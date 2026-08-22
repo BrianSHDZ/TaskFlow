@@ -49,18 +49,9 @@ public class UsuarioServiceImp implements IUsuarioService{
             usuario.setRol(rolExistente);
         }
         return usuarioRepository.save(usuario);
-        /*if(usuario.getRol() == null || usuario.getRol().getId() == null){
-            Rol rolPorDefecto = new Rol();
-            rolPorDefecto.setId(2);
-            usuario.setRol(rolPorDefecto);
-            Rol roldefecto = rolRepository.findByNombre("ROLE_MIEMBRO").orElseThrow(() -> new RolNotFoundException("El rol por defecto no existe"));
-            usuario.setRol(roldefecto);
-        }else{
-            Long rolId = usuario.getRol().getId();
-            Rol rolexistente = rolRepository.getId();
-        }
-        return usuarioRepository.save(usuario);*/
     }
+
+
 
     @Override
     public Usuario actualizarUsuario(Long id, Usuario usuario) {
@@ -103,4 +94,10 @@ public class UsuarioServiceImp implements IUsuarioService{
     public boolean existePorCorreo(String correo) {
         return usuarioRepository.existsByCorreo(correo);
     }
+
+    @Override
+    public List<Usuario> buscarUsuariosPorFiltro(String filtro) {
+        return usuarioRepository.buscarPorNombreOCorreo(filtro);
+    }
 }
+

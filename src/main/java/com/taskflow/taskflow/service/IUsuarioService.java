@@ -17,4 +17,6 @@ public interface IUsuarioService {
     void eliminarUsuario(Long id);  //Eliminar usuario por id
 
     boolean existePorCorreo(String correo);
+
+    List<Usuario> buscarUsuariosPorFiltro(String filtro);
 }
