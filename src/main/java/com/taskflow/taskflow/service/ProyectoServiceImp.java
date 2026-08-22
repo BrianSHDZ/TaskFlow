@@ -91,26 +91,10 @@ public class ProyectoServiceImp implements IProyectoService{
 
     @Override
     public List<ProyectoDTO> obtenerProyectosConConteoPorUsuario(Long usuarioId) {
-        //List<Proyecto> proyectos = proyectoRepository.findByCreadoPor(usuarioId);
-        List<Proyecto> proyectos = proyectoRepository.findByCreadoPorAndEstatus(usuarioId, "ACTIVO");
-        List<ProyectoDTO> dtos = new ArrayList<>();
-
-        for (Proyecto p : proyectos) {
-            List<Tarea> tareasDelProyecto = tareaRepository.findByProyectoId(p.getId());
-
-            long total = tareasDelProyecto.size();
-            long completadas = tareasDelProyecto.stream()
-                    .filter(t -> "COMPLETADA".equalsIgnoreCase(t.getEstatus()))
-                    .count();
-            dtos.add(new ProyectoDTO(
-                    p.getId(),
-                    p.getTitulo(),
-                    p.getDescripcion(),
-                    p.getCreadoPor(),
-                    total,
-                    completadas
-            ));
-        } return dtos;
+        if (usuarioId == null || !usuarioRepository.existsById(usuarioId)) {
+            throw new UsuarioNotFoundException("El usuario no existe");
+        }
+        return proyectoRepository.obtenerProyectosConConteoPorUsuarioOptimizada(usuarioId);
     }
 
     @Override
