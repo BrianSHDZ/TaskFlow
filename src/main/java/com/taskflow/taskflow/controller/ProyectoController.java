@@ -6,6 +6,7 @@ import com.taskflow.taskflow.service.IProyectoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,38 +23,46 @@ public class ProyectoController {
 
     @GetMapping
     public List<Proyecto> listaProyecto() {
+        String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+        System.out.println("¡Petición recibida! El usuario autenticado es: " + correoUsuarioAutenticado);
         return proyectoService.listarProyectos();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerProyectoPorId(@PathVariable Long id) {
+        String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(proyectoService.obtenerProyectoPorId(id));
     }
 
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<ProyectoDTO>> obtenerProyectoPorUsuario(@PathVariable Long usuarioId) {
+        String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         List<ProyectoDTO> proyectos = proyectoService.obtenerProyectosConConteoPorUsuario(usuarioId);
         return ResponseEntity.ok(proyectos);
     }
 
     @GetMapping("/usuario/{usuarioId}/completados")
     public ResponseEntity<List<Proyecto>> obtenerProyectosCompletados(@PathVariable Long usuarioId) {
+        String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(proyectoService.obtenerProyectosCompletados(usuarioId));
     }
 
     @PostMapping
     public ResponseEntity<?> guardarProyecto(@RequestBody @Valid Proyecto proyecto) {
+        String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         Proyecto nuevoProyecto = proyectoService.guardarProyecto(proyecto);
         return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProyecto);
     }
 
     @PutMapping("/{id}")
     public Proyecto actualizarProyecto(@PathVariable Long id, @RequestBody @Valid Proyecto proyecto) {
+        String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         return proyectoService.actualizarProyecto(id, proyecto);
     }
 
     @PutMapping("/{id}/estatus")
     public ResponseEntity<?> actualizarEstatusProyecto(@PathVariable Long id, @RequestParam String estatus) {
+        String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         try {
             // 1. Buscamos el proyecto actual por su ID
             // (Ajusta el nombre del método de tu servicio si es diferente)
@@ -70,6 +79,7 @@ public class ProyectoController {
 
     @DeleteMapping("/{id}")
     public void eliminarProyecto(@PathVariable Long id) {
+        String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         proyectoService.eliminarProyecto(id);
     }
 }

@@ -87,15 +87,11 @@ public class AuthController {
     @PostMapping("/registro")
     public ResponseEntity<?> registrarUsuario(@RequestBody Usuario nuevoUsuario) {
         try {
-            // 1. Encriptamos la contraseña antes de guardarla
-            nuevoUsuario.setContrasena(passwordEncoder.encode(nuevoUsuario.getContrasena()));
-
-            // 2. Usamos TU SERVICIO, el cual automáticamente asignará el rol 2 si viene vacío
             usuarioService.nuevoUsuario(nuevoUsuario);
 
             return ResponseEntity.ok("Usuario registrado exitosamente");
         } catch (Exception e) {
-            // Si el correo ya existe (tu EmailAlreadyExistsException), caerá aquí
+            // Si el correo ya existe, caerá aquí
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }

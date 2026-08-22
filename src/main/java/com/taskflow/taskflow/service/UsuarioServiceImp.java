@@ -10,6 +10,7 @@ import com.taskflow.taskflow.repository.IProyectoRepository;
 import com.taskflow.taskflow.repository.IRolRepository;
 import com.taskflow.taskflow.repository.IUsuarioRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -20,11 +21,13 @@ public class UsuarioServiceImp implements IUsuarioService{
     private final IUsuarioRepository usuarioRepository;
     private final IProyectoRepository proyectoRepository;
     private final IRolRepository rolRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioServiceImp(IUsuarioRepository usuarioRepository, IProyectoRepository proyectoRepository, IRolRepository rolRepository) {
+    public UsuarioServiceImp(IUsuarioRepository usuarioRepository, IProyectoRepository proyectoRepository, IRolRepository rolRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.proyectoRepository = proyectoRepository;
         this.rolRepository = rolRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -42,36 +45,31 @@ public class UsuarioServiceImp implements IUsuarioService{
                     .orElseThrow(() -> new RolNotFoundException("El rol por defecto con ID 2 no existe"));
             usuario.setRol(rolPorDefecto);
         }
-        //Si se envio un id de rol inexistente en la base de datos
         else {
             Integer rolId = usuario.getRol().getId();
             Rol rolExistente = rolRepository.findById(rolId).orElseThrow(() -> new RolNotFoundException("El rol con id " + rolId + " no existe"));
             usuario.setRol(rolExistente);
         }
+        String contrasenaEncriptada = passwordEncoder.encode(usuario.getContrasena());
+        usuario.setContrasena(contrasenaEncriptada);
         return usuarioRepository.save(usuario);
     }
 
-
-
     @Override
     public Usuario actualizarUsuario(Long id, Usuario usuario) {
-        //comprobar exista el usuario o si no mandar el mensaje de no encontrado
         Usuario usuarioActual = usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNotFoundException("El usuario con id " + id + " no existe"));
-        //actualizar nombre
         if (usuario.getNombreUsuario() != null && !usuario.getNombreUsuario().isBlank()) {
             usuarioActual.setNombreUsuario(usuario.getNombreUsuario());
         }
-        //actualizar correo (validando que no esté repetido)
         if (usuario.getCorreo() != null && !usuario.getCorreo().isBlank()) {
             if (!usuarioActual.getCorreo().equals(usuario.getCorreo()) && usuarioRepository.existsByCorreo(usuario.getCorreo())) {
                 throw new EmailAlreadyExistsExceptions("El correo ya está registrado por otro usuario");
             }usuarioActual.setCorreo(usuario.getCorreo());
         }
-        //actualizar contraseña
         if (usuario.getContrasena() != null && !usuario.getContrasena().isBlank()) {
-            usuarioActual.setContrasena(usuario.getContrasena());
+            String contrasenaEncriptada = passwordEncoder.encode(usuario.getContrasena());
+            usuarioActual.setContrasena(contrasenaEncriptada);
         }
-        //actualizar rol y si el id es válido
         if (usuario.getRol() != null && usuario.getRol().getId() != null) {
             Integer rolId = usuario.getRol().getId();
             Rol rolExistente = rolRepository.findById(rolId).orElseThrow(() -> new RolNotFoundException("El rol con id " + rolId + " no existe"));
