@@ -12,6 +12,7 @@ import com.taskflow.taskflow.repository.IProyectoRepository;
 import com.taskflow.taskflow.repository.IRegistroTiempoRepository;
 import com.taskflow.taskflow.repository.ITareaRepository;
 import com.taskflow.taskflow.repository.IUsuarioRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -120,11 +121,28 @@ public class TareaServiceImp implements ITareaService {
     }
 
     @Override
-    public void eliminarTarea(Long id) {
-        if (!tareaRepository.existsById(id)) {
-            throw new TareaNotFoundException("No existe la tarea con id: " + id);
-        }
-        tareaRepository.deleteById(id);
+    public void eliminarTarea(Long id, String correoUsuarioAutenticado) {
+        // 1. Obtener la tarea
+        Tarea tarea = tareaRepository.findById(id)
+                .orElseThrow(() -> new TareaNotFoundException("No existe la tarea con id: " + id));
+
+        // 2. Si la tarea pertenece a un proyecto, validar permisos
+        if (tarea.getProyectoId() != null) {
+            // Obtenemos el proyecto asociado a la tarea
+            Proyecto proyecto = proyectoRepository.findById(tarea.getProyectoId())
+                    .orElseThrow(() -> new RuntimeException("Proyecto no encontrado"));
+
+            // Obtenemos el usuario que hace la petición
+            Usuario usuarioPeticion = usuarioRepository.findByCorreo(correoUsuarioAutenticado)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            // Validamos si el usuario es el creador del proyecto
+            if (!proyecto.getCreadoPor().equals(usuarioPeticion.getId())) {
+                throw new AccessDeniedException("No tienes permiso para eliminar tareas de este proyecto.");
+            }
+        } else { }
+        // 3. Eliminar si todo está bien
+        tareaRepository.delete(tarea); // O deleteById(id), ambos funcionan
     }
 
     @Override

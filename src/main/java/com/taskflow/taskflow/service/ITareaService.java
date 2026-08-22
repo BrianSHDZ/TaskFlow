@@ -18,7 +18,7 @@ public interface ITareaService {
 
     Tarea actualizarTarea(Long id, Tarea tareaActualizada);
 
-    void eliminarTarea(Long id);
+    void eliminarTarea(Long id, String correoUsuarioAutenticado);
 
     Tarea finalizarTarea(Long id);
 

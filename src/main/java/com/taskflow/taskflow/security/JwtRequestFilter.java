@@ -25,7 +25,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // 1. Inyectamos tu repositorio para poder buscar el rol del usuario
     @Autowired
     private IUsuarioRepository usuarioRepository;
 
@@ -49,13 +48,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtil.validateToken(jwt, username)) {
-                
+
                 Optional<Usuario> usuarioOpt = usuarioRepository.findByCorreo(username);
 
                 if (usuarioOpt.isPresent()) {
                     Usuario usuario = usuarioOpt.get();
 
                     String nombreRol = usuario.getRol().getNombre();
+
+                    // --- LA MAGIA SUCEDE AQUÍ ---
+                    // Nos aseguramos de que siempre tenga el prefijo "ROLE_"
+                    // Así no tienes que modificar NINGÚN controlador.
+                    if (!nombreRol.startsWith("ROLE_")) {
+                        nombreRol = "ROLE_" + nombreRol;
+                    }
+                    // -----------------------------
+
                     List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority(nombreRol));
 
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -65,6 +73,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } chain.doFilter(request, response);
+        }
+        chain.doFilter(request, response);
     }
 }

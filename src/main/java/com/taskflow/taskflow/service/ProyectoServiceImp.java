@@ -3,6 +3,7 @@ package com.taskflow.taskflow.service;
 import com.taskflow.taskflow.dto.ProyectoDTO;
 import com.taskflow.taskflow.entity.Proyecto;
 import com.taskflow.taskflow.entity.Tarea;
+import com.taskflow.taskflow.entity.Usuario;
 import com.taskflow.taskflow.exception.DatosInvalidosException;
 import com.taskflow.taskflow.exception.ProyectoNotFoundException;
 import com.taskflow.taskflow.exception.ProyectoWithTareaException;
@@ -10,6 +11,7 @@ import com.taskflow.taskflow.exception.UsuarioNotFoundException;
 import com.taskflow.taskflow.repository.IProyectoRepository;
 import com.taskflow.taskflow.repository.ITareaRepository;
 import com.taskflow.taskflow.repository.IUsuarioRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -56,11 +58,15 @@ public class ProyectoServiceImp implements IProyectoService{
     }
 
     @Override
-    public Proyecto actualizarProyecto(Long id, Proyecto proyecto) {
-        //verifica si el proyecto existe
-        Proyecto proyectoActual = proyectoRepository.findById(id)
-                .orElseThrow(() -> new ProyectoNotFoundException("El proyecto con id " + id + " no existe"));
-        //actualiza nombre si tiene modificacion
+    public Proyecto actualizarProyecto(Long id, Proyecto proyecto, String correoUsuarioAutenticado) {
+        Proyecto proyectoActual = proyectoRepository.findById(id).orElseThrow(() -> new ProyectoNotFoundException("El proyecto con id " + id + " no existe"));
+
+        Usuario usuarioPeticion = usuarioRepository.findByCorreo(correoUsuarioAutenticado)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (!proyectoActual.getCreadoPor().equals(usuarioPeticion.getId())) {
+            throw new AccessDeniedException("No tienes permiso para modificar este proyecto. Solo el creador puede hacerlo.");
+        }
         if (proyecto.getTitulo() != null && !proyecto.getTitulo().isBlank()) {
             proyectoActual.setTitulo(proyecto.getTitulo());
         }
@@ -81,8 +87,12 @@ public class ProyectoServiceImp implements IProyectoService{
     }
 
     @Override
-    public void eliminarProyecto(Long id) {
+    public void eliminarProyecto(Long id, String correoUsuarioAutenticado) {
         Proyecto proyecto = obtenerProyectoPorId(id);
+        Usuario usuarioPeticion = usuarioRepository.findByCorreo(correoUsuarioAutenticado).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        if (!proyecto.getCreadoPor().equals(usuarioPeticion.getId())) {
+            throw new AccessDeniedException("No tienes permiso para eliminar este proyecto. Solo el creador puede hacerlo.");
+        }
         if(tareaRepository.existsByProyectoId(id)){
             throw new ProyectoWithTareaException("No se puede eliminar el proyecto porque tiene tareas asociadas. Elimina o reasigna las tareas");
         }

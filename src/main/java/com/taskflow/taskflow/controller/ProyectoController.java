@@ -3,9 +3,12 @@ package com.taskflow.taskflow.controller;
 import com.taskflow.taskflow.dto.ProyectoDTO;
 import com.taskflow.taskflow.entity.Proyecto;
 import com.taskflow.taskflow.service.IProyectoService;
+import com.taskflow.taskflow.service.IUsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,9 +19,11 @@ import java.util.List;
 public class ProyectoController {
 
     private final IProyectoService proyectoService;
+    private final IUsuarioService usuarioService;
 
-    public ProyectoController(IProyectoService proyectoService) {
+    public ProyectoController(IProyectoService proyectoService, IUsuarioService usuarioService) {
         this.proyectoService = proyectoService;
+        this.usuarioService = usuarioService;
     }
 
     @GetMapping
@@ -35,6 +40,7 @@ public class ProyectoController {
     }
 
     @GetMapping("/usuario/{usuarioId}")
+    @PreAuthorize("hasAnyRole('MIEMBRO', 'LIDER', 'ADMIN')")
     public ResponseEntity<List<ProyectoDTO>> obtenerProyectoPorUsuario(@PathVariable Long usuarioId) {
         String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         List<ProyectoDTO> proyectos = proyectoService.obtenerProyectosConConteoPorUsuario(usuarioId);
@@ -48,6 +54,7 @@ public class ProyectoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('MIEMBRO', 'LIDER', 'ADMIN')")
     public ResponseEntity<?> guardarProyecto(@RequestBody @Valid Proyecto proyecto) {
         String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
         Proyecto nuevoProyecto = proyectoService.guardarProyecto(proyecto);
@@ -55,22 +62,28 @@ public class ProyectoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public Proyecto actualizarProyecto(@PathVariable Long id, @RequestBody @Valid Proyecto proyecto) {
+
         String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
-        return proyectoService.actualizarProyecto(id, proyecto);
+
+        // Le pasamos el correo al servicio, él se encargará de validar
+        return proyectoService.actualizarProyecto(id, proyecto, correoUsuarioAutenticado);
     }
 
     @PutMapping("/{id}/estatus")
+    @PreAuthorize("isAuthenticated()") // Solo pedimos que esté logueado
     public ResponseEntity<?> actualizarEstatusProyecto(@PathVariable Long id, @RequestParam String estatus) {
+
         String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
+
         try {
-            // 1. Buscamos el proyecto actual por su ID
-            // (Ajusta el nombre del método de tu servicio si es diferente)
             Proyecto proyecto = proyectoService.obtenerProyectoPorId(id);
-            // 2. Le cambiamos únicamente el estatus
             proyecto.setEstatus(estatus);
-            // 3. Reutilizamos tu método existente para guardarlo actualizado
-            Proyecto proyectoActualizado = proyectoService.actualizarProyecto(id, proyecto);
+
+            // Aquí reutilizamos tu método actualizarProyecto que ahora pedirá el correo
+            Proyecto proyectoActualizado = proyectoService.actualizarProyecto(id, proyecto, correoUsuarioAutenticado);
+
             return ResponseEntity.ok(proyectoActualizado);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error al actualizar el estatus: " + e.getMessage());
@@ -78,8 +91,9 @@ public class ProyectoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
     public void eliminarProyecto(@PathVariable Long id) {
         String correoUsuarioAutenticado = SecurityContextHolder.getContext().getAuthentication().getName();
-        proyectoService.eliminarProyecto(id);
+        proyectoService.eliminarProyecto(id, correoUsuarioAutenticado);
     }
 }

@@ -15,9 +15,9 @@ public interface IProyectoService {
 
     List<Proyecto> obtenerProyectoPorUsuario(Long usuarioId);
 
-    Proyecto actualizarProyecto(Long id, Proyecto proyecto);
+    Proyecto actualizarProyecto(Long id, Proyecto proyecto, String correoUsuarioAutenticado);
 
-    void eliminarProyecto(Long id);
+    void eliminarProyecto(Long id, String correoUsuarioAutenticado);
 
     List<ProyectoDTO> obtenerProyectosConConteoPorUsuario(Long usuarioId);
 
