@@ -1,5 +1,7 @@
 package com.taskflow.taskflow.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -21,7 +23,8 @@ public class Usuario {
     @Column(name = "correo", nullable = false, length = 100, unique = true)
     private String correo;
     @NotBlank(message = "La contrasena no puede estar vacia")
-    @Size(min = 12, max = 20, message = "La contrasena debe tener entre 12 a 20 caracteres")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Size(min = 12, max = 200, message = "La contrasena debe tener entre 12 a 200 caracteres")
     @Column(name = "contrasena",  nullable = false, length = 250)
     private String contrasena;
     //@NotNull(message = "Debe asignar un rol al usuario")
