@@ -181,19 +181,15 @@ class ProyectoServiceImpTest {
 
     @Test
     void obtenerProyectosConConteoPorUsuarioExitosamente() {
-        Tarea tarea1 = new Tarea();
-        tarea1.setEstatus("COMPLETADA");
-        Tarea tarea2 = new Tarea();
-        tarea2.setEstatus("PENDIENTE");
-
-        when(proyectoRepository.findByCreadoPorAndEstatus(10L, "ACTIVO")).thenReturn(List.of(proyectoBase));
-        when(tareaRepository.findByProyectoId(1L)).thenReturn(List.of(tarea1, tarea2));
+        ProyectoDTO dto = new ProyectoDTO(1L, "Título", "Desc", 10L, 5L, 3L);
+        when(usuarioRepository.existsById(10L)).thenReturn(true);
+        when(proyectoRepository.obtenerProyectosConConteoPorUsuarioOptimizada(10L)).thenReturn(List.of(dto));
 
         List<ProyectoDTO> dtos = proyectoService.obtenerProyectosConConteoPorUsuario(10L);
 
         assertFalse(dtos.isEmpty());
-        assertEquals(2, dtos.get(0).getTotalTareas());
-        assertEquals(1, dtos.get(0).getTareasCompletadas());
+        assertEquals(5, dtos.get(0).getTotalTareas());
+        assertEquals(3, dtos.get(0).getTareasCompletadas());
     }
 
     @Test
